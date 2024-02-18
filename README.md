@@ -1,4 +1,4 @@
 # SfM-and-NeRF
 
 to run the code:
-https://github.com/shambhurajmane/SfM-and-NeRF
+python3 .\samane_p2\Phase1\Wrapper.py
