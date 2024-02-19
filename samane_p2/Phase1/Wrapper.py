@@ -1,23 +1,38 @@
-# Code starts here:
+"""
+RBE/CS Spring 2023: Classical and Deep Learning Approaches for
+Geometric Computer Vision
+Project 2
 
-import ipdb
-import numpy as np
+"""
+
 import cv2
+import numpy as np
 import os
-import matplotlib.pyplot as plt
-import sys
-from scipy.ndimage import rotate
-import os
-import sklearn.cluster
-from scipy import signal, ndimage
-import random
-from Wrapper import *
-from GetInliersRANSAC import ransac_wa, ransac_wh
-from EstimateFundamentalMatrix import find_fundamental_mat, compute_fun_matrix
-from EssentialMatrixFromFundamentalMatrix import find_essential_mat
-from ExtractCameraPose import find_camera_pose
-from LinearTriangulation import find_initial_traingulation
+from scipy.spatial.transform import Rotation
+from GetInliersRANSAC import *
+from EstimateFundamentalMatrix import *
+from EssentialMatrixFromFundamentalMatrix import * 
+from ExtractCameraPose import *
+from LinearTriangulation import *
+from PnPRANSAC import *
+from DisambiguateCameraPose import *
+from NonlinearTriangulation import *
+from NonlinearPnP import *
+from BuildVisibilityMatrix import *
 
+
+def create_visualization(images, Labels, cols, size,file_name):
+	rows = int(np.ceil(len(images)/cols))
+	plt.subplots(rows, cols, figsize=size)
+	for index in range(len(images)):
+		plt.subplot(rows, cols, index+1)
+		plt.axis('off')
+		plt.imshow(images[index], cmap= "gray")
+		plt.title(Labels[index])
+	plt.savefig(file_name)	
+	plt.show()
+	plt.close()
+     
 # To load images from given folder
 def loadImages(folder_name, image_files):
 	print("Loading images from ", folder_name)
@@ -29,7 +44,7 @@ def loadImages(folder_name, image_files):
 		image_path = folder_name + "/" + file
 		
 		image = cv2.imread(image_path)
-		image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+		# image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 		if image is not None:
 			images.append(image)
 			
@@ -51,51 +66,110 @@ def store_match_features(txt_file):
                 image_dict={}
                 image_dict["ref"] = int(lines[i].split()[6+temp])
                 image_dict["rgd"] = (int(lines[i].split()[1]),int(lines[i].split()[2]),int(lines[i].split()[3]))
-                image_dict["keypoint1"] = cv2.KeyPoint(float(lines[i].split()[4]), float(lines[i].split()[5]), 1)
-                image_dict["keypoint2"] = cv2.KeyPoint(float(lines[i].split()[7+temp]), float(lines[i].split()[8+temp]), 1)
+                image_dict["keypoint1"] = [float(lines[i].split()[4]), float(lines[i].split()[5])]
+                image_dict["keypoint2"] = [float(lines[i].split()[7+temp]), float(lines[i].split()[8+temp])]
                 image_dict_list.append(image_dict)
                 temp += 3
 
-    return image_dict_list
-     
-def create_visualization(images, Labels, cols, size,file_name):
-	rows = int(np.ceil(len(images)/cols))
-	plt.subplots(rows, cols, figsize=size)
-	for index in range(len(images)):
-		plt.subplot(rows, cols, index+1)
-		plt.axis('off')
-		plt.imshow(images[index], cmap= "gray")
-		plt.title(Labels[index])
-	plt.savefig(file_name)	
-	plt.show()
-	plt.close()
+    return image_dict_list  
 
-def draw_epipolar_lines(F,final_matching_pairs,image):
+def get_matching_points(ref_image_id,matching_image_id,matched_features_list):
+    matched_points = []
+    for i in range(len(matched_features_list[0])):
+    
+        if matched_features_list[0][i]["ref"]==matching_image_id:
+            matched_points.append([matched_features_list[0][i]["keypoint1"],matched_features_list[0][i]["keypoint2"]])
+    return  matched_points
+
+def draw_epipolar_lines(F,norm_matching_pairs,image):
     x= np.linspace(0,image.shape[1])
-    for i, [point1, point2] in enumerate(final_matching_pairs):
+    for i, [point1, point2] in enumerate(norm_matching_pairs):
         ul, vl = point1
+
         y = (-(F[0,2]*ul + F[1,2]*vl+F[2,2]) - (F[0,0]*ul + F[1,0]*vl + F[2,0])* x)/(F[0,1]*ul + F[1,1]*vl + F[2,1])
         plt.plot(x,y)
     
     plt.imshow(image)
     plt.show()
 
-def normalize_image_coordinates(final_matching_pairs,image1,image2):
-    max_y, max_x, _ = image1.shape
-    for i in range(len(final_matching_pairs)):
-        final_matching_pairs[i][0][0] = final_matching_pairs[i][0][0] / max_x
-        final_matching_pairs[i][0][1] = final_matching_pairs[i][0][1] / max_y
+def check_reprojection(filtered_matched_points,world_points,projections, image_left, image_right, title):
 
-        final_matching_pairs[i][1][0] = final_matching_pairs[i][0][0] / max_x
-        final_matching_pairs[i][1][1] = final_matching_pairs[i][0][1] / max_y
-    return final_matching_pairs
+    plt.subplots(1, 2, figsize=(14, 5))
+    image_left = cv2.cvtColor(image_left, cv2.COLOR_BGR2RGB)    
+    image_right = cv2.cvtColor(image_right, cv2.COLOR_BGR2RGB)
+
+    for i in range(len(world_points)):
+        left_pt = filtered_matched_points[i][0]
+        right_pt = filtered_matched_points[i][1]  
+        ur, vr, wr = world_points[i]
+        wp = np.array([ur, vr, wr,1])
+        left_proj = np.matmul(projections[0],wp)
+        left_proj = left_proj / left_proj[-1]
+
+        right_proj = np.matmul(projections[1],wp)
+        right_proj = right_proj / right_proj[-1]
+        plt.subplot(1, 2, 1)
+        plt.imshow(image_left)
+        plt.scatter(left_pt[0], left_pt[1], color='red',s=5)
+        plt.scatter(left_proj[0], left_proj[1], color='blue',s=5)
+        plt.title(title + "image1")
 
 
+        plt.subplot(1, 2, 2)
+        plt.imshow(image_right)
+        plt.scatter(right_pt[0], right_pt[1], color='red', s=5)
+        plt.scatter(right_proj[0], right_proj[1], color='blue', s=5)
+        plt.title(title + "image2")
 
-     
-    
+        
+
+    plt.legend(['Projections', 'Reprojection'])
+    plt.show()
+
+
+def visualize_points_camera_poses(points_list, currected_points_list, camera_pose):
+
+    points_list = np.asarray(points_list)              
+
+    x_pts_1, y_pts_1, z_pts_1 = points_list[:, 0], points_list[:, 1], points_list[:, 2]
+
+    dot_size = 1
+    axes_lim = 20
+
+    plt.scatter(x_pts_1, z_pts_1, color="red", s=dot_size)
+
+    points_list = np.asarray(currected_points_list)              
+
+    x_pts_1, y_pts_1, z_pts_1 = points_list[:, 0], points_list[:, 1], points_list[:, 2]
+
+    dot_size = 1
+    axes_lim = 20
+
+    plt.scatter(x_pts_1, z_pts_1, color="blue", s=dot_size)
+    # plt.scatter(x_pts_2, z_pts_2, color="blue", s=dot_size)
+
+    for i in range(len(camera_pose)):
+
+        r2 = Rotation.from_matrix(camera_pose[i][1])
+        angles2 = r2.as_euler("zyx", degrees=True)
+
+        plt.plot(camera_pose[i][0][0], camera_pose[i][0][2], marker=(3, 0, int(angles2[1])), markersize=15, linestyle='None')
+
+    plt.title("triangulated world points")
+    plt.xlim(-axes_lim, axes_lim)
+    plt.ylim(-5, 30)
+    plt.xlabel("x (dimensionless)")
+    plt.ylabel("z (dimensionless)")
+    plt.legend(['Before optimization', 'After optimization'])
+
+    # show plot
+    plt.show()
+
 
 def main():
+    """
+
+    """
     input_folder_name = "./P3Data/"
     op_folder_name = "./Results"
     if not os.path.exists(op_folder_name):
@@ -105,6 +179,7 @@ def main():
     match_text_file=[]
     matched_features_list = []
     num_images = 5
+
     
     for file in folder_names:
         if ".png" in file:
@@ -121,60 +196,53 @@ def main():
                 calib_mat = []
                 for line in lines:
                     calib_mat.append(list(map(float, line.split())))
-            calib_mat = np.matrix(calib_mat)
+            calib_mat = np.array(calib_mat)
             
     images = loadImages(input_folder_name,image_files)
-    keypoints1=[]
-    keypoints2=[]
-    points1 = []
-    points2 = []
-    matches = []
-    x=0
+    ref_image_id = 1
+    matching_image_id = 2
 
-    for i in range(len(matched_features_list[0])):
-        
-        if matched_features_list[0][i]["ref"]==2:
-            keypoints1.append(matched_features_list[0][i]["keypoint1"])
-            points1.append([matched_features_list[0][i]["keypoint1"].pt[0],matched_features_list[0][i]["keypoint1"].pt[1]])
-            keypoints2.append(matched_features_list[0][i]["keypoint2"])
-            points2.append([matched_features_list[0][i]["keypoint2"].pt[0],matched_features_list[0][i]["keypoint2"].pt[1]])
-
-            matches.append(cv2.DMatch(x, x, 0))
-            x+=1
+    matched_points = np.asarray(get_matching_points(ref_image_id,matching_image_id,matched_features_list))     
     
-    # For image 1 and image 2
-    visualize=[]
-    label = []
-    matched_image = cv2.drawMatches(images[0], keypoints1, images[1], keypoints2, matches, None, flags=2)
+    print('num matched points: ', len(matched_points))
 
-    # plt.imshow(matched_image)
-    # plt.show()
-    visualize.append(matched_image)
-    label.append("Before Ransac")
-    H_matrix, filtered_matches, final_matching_pairs = ransac_wh(keypoints1, keypoints2, matches, 1000, 10)
-    A_matrix, filtered_matches, final_matching_pairs = ransac_wa(keypoints1, keypoints2, filtered_matches, 1000, 0.05)
-    # calculate homography from RANSAC matches using SVD
-    matched_image = cv2.drawMatches(images[0], keypoints1, images[1], keypoints2, filtered_matches, None, flags=2)
-    # plt.imshow(matched_image)
-    # plt.show()
-    visualize.append(matched_image)
-    label.append("After Ransac")
-    create_visualization(visualize,label,1,(14, 7),op_folder_name+"/"+"ransac.png")
-    norm_matching_pairs = normalize_image_coordinates(final_matching_pairs,images[0],images[1])
-    Final_F_matrix = compute_fun_matrix(norm_matching_pairs)
-    draw_epipolar_lines(Final_F_matrix,final_matching_pairs,images[1] )
-    Ess_matrix = find_essential_mat(Final_F_matrix, calib_mat)
-    
-    camera_poses = find_camera_pose(Ess_matrix)
-    find_initial_traingulation(camera_poses, norm_matching_pairs, calib_mat)
+    Final_fundamental_mat, filtered_matched_points = get_inliers_RANSAC(matched_points,iterations = 1000, threshold = 0.05)
+    print("F: ", Final_fundamental_mat)
+    print('num best matched points: ', len(filtered_matched_points))
+
+    draw_epipolar_lines(Final_fundamental_mat,filtered_matched_points,images[1])
+
+    K = calib_mat
+
+    Essential_mat = find_essential_mat(Final_fundamental_mat, K)
+    print('E: ', Essential_mat)
+
+    #Extract camera poses from Essential matrix
+    camera_poses = extract_camera_pose(Essential_mat)
+    # C_list, R_list = extract_camera_pose(Essential_mat)
+
+    Xr_points = []
+    projections = []
+
+    for camera_pose in camera_poses:                
+        X_r, pr_r, pr_l = find_linear_traingulation(K, camera_pose, filtered_matched_points)
+        Xr_points.append(X_r)
+        projections.append([pr_r,pr_l])
+
+    correct_pose, world_points, index = disambiguate_camera_poses(camera_poses, Xr_points)
+    check_reprojection(filtered_matched_points,world_points,projections[index], images[0], images[1], title= "Before optimizaztion")
+    final_camera_poses = []
+    final_camera_poses.append([np.zeros(3), np.eye(3)])
+    final_camera_poses.append(correct_pose)
+    # visualize_points_camera_poses(world_points, final_camera_poses)
+
+    world_points_corrected = non_linear_triangulation( filtered_matched_points, world_points,projections[index])
+    check_reprojection(filtered_matched_points, world_points_corrected,projections[index], images[0], images[1], title= "After optimizaztion")
+    visualize_points_camera_poses(world_points,world_points_corrected , final_camera_poses)
 
 
+     
 
-
-
-              
-
-        
 
 
 

@@ -1,167 +1,118 @@
+"""
+Computing the best fundamental matrix from the matching features using RANSAC
+"""
+
 import numpy as np
-import random
-import cv2
+from EstimateFundamentalMatrix import *
 import ipdb
-from EstimateFundamentalMatrix import find_fundamental_mat
-
-def ransac_wh(keypoints1, keypoints2, matched_features, num_iterations, threshold):
-
-    # Perform RANSAC to find the best homography
-    H_matrix = None
-    points1 = np.float32([keypoints1[m.queryIdx].pt for m in matched_features]).reshape(-1, 1, 2)
-    points2 = np.float32([keypoints2[m.trainIdx].pt for m in matched_features]).reshape(-1, 1, 2)
-    filtered_matches = []
-    count = 0 
-    final_matches = None
-    for i in range(num_iterations):
-        # Randomly select 4 matched features
-        try:
-            random_matches = random.sample(matched_features, 4)
-            random_points1 = np.float32([keypoints1[m.queryIdx].pt for m in random_matches]).reshape(-1, 1, 2)
-            random_points2 = np.float32([keypoints2[m.trainIdx].pt for m in random_matches]).reshape(-1, 1, 2)
-
-            # Find the homography matrix
-            H, mask = cv2.findHomography(random_points1, random_points2)
-            inliers, filtered_matches, matching_pairs = find_inliers(points1, points2, H,threshold)
-            # ipdb.set_trace()    
-            if inliers > count:
-                # filtered_matches.append(random_matches)
-                count = inliers
-                H_matrix = H
-                final_matches = filtered_matches   
-                final_matching_pairs = matching_pairs
-        except UnboundLocalError or ValueError:
-            print("Not enough matches found")
-            H_matrix = None
-            final_matches =None
-            
-
-    print("RANSAC performed")
-    print("Number of inliers", count)
-    return H_matrix, final_matches, final_matching_pairs
+import random
 
 
-def ransac_wa(keypoints1, keypoints2, matched_features, num_iterations, threshold):
+def get_inliers_RANSAC(matched_points,iterations,threshold):
+    num_matches = len(matched_points)              
+    A_matrix = np.zeros((3, 3))                    
 
-    # Perform RANSAC to find the best homography
-    A_matrix = None
-    matching_pairs = np.float32([[[keypoints1[m.queryIdx].pt[0],keypoints1[m.queryIdx].pt[1]],[keypoints2[m.queryIdx].pt[0],keypoints2[m.queryIdx].pt[1]]] for m in matched_features])
+    number_of_inliers = 0    
+    filnal_matches = []                            
 
-    filtered_matches = []
-    final_matching_pairs=[]
-    count = 0 
-    final_matches = None
-    for i in range(num_iterations):
-        # Randomly select 8 matched features
-        try:
-            random_matches = random.sample(matched_features, 8)
-            random_pairs = np.float32([[[keypoints1[m.queryIdx].pt[0],keypoints1[m.queryIdx].pt[1]],[keypoints2[m.queryIdx].pt[0],keypoints2[m.queryIdx].pt[1]]] for m in random_matches])
+    for index in range(iterations):               
 
-            # Find the homography matrix
-            A = find_fundamental_mat(random_pairs)
-            inliers, filtered_matches, matching_pairs = find_inliers_wa(matching_pairs, A,threshold)
-            # ipdb.set_trace()    
-            if inliers > count:
-                # filtered_matches.append(random_matches)
-                count = inliers
-                A_matrix = A
-                final_matches = filtered_matches   
-                final_matching_pairs = matching_pairs
-        except UnboundLocalError or ValueError:
-            print("Not enough matches found")
-            A_matrix = None
-            final_matches =None
-            
+        # Select 8 matched feature pairs from each image at random
+        points = [np.random.randint(0, num_matches) for num in range(8)]      
+        left_pts = []
+        right_pts = []
+        for pt in points:
+            left_pts.append(matched_points[pt, 0])
+            right_pts.append(matched_points[pt, 1])
 
-    print("RANSAC performed")
-    print("Number of inliers", count)
-    return A_matrix, final_matches, final_matching_pairs
+        left_pts = np.array(left_pts, np.float32)
+        right_pts = np.array(right_pts, np.float32)
 
-def find_inliers(src_points, dst_points, H1, threshold):
-    number_of_inliers = 0
-    filtered_matches = []  
-    matching_pairs = [] 
-    for i in range(len(src_points)):
-        src_point = [src_points[i,0][0], src_points[i,0][1]] 	
-        src_point.append(1)
-        src_point = np.array(src_point)
-        src_point = src_point.reshape(3,1)
+        F = get_fundamental_matrix(left_pts, right_pts)      
+        num_filtered_matches = 0
 
-        dest_point = [dst_points[i,0][0], dst_points[i,0][1]] 	
-        dest_point.append(1)
-        dest_point = np.array(dest_point)
-        dest_point = dest_point.reshape(3,1)
+        filtered_matches = []
 
-        predicted_point = np.dot(H1, src_point)	
-        # calculate the sum of squared distance between the predicted
-        ssd = np.linalg.norm(dest_point[0:1] - predicted_point[0:1])
-        # ipdb.set_trace()		
-        if ssd < threshold:
-            filtered_matches.append(cv2.DMatch(i, i, 0))
-            matching_pairs.append([[src_points[i,0][0], src_points[i,0][1]],[dst_points[i,0][0], dst_points[i,0][1]]])
-            number_of_inliers += 1
- 
-    return number_of_inliers , filtered_matches ,matching_pairs
+        for i in range(num_matches):
+
+            ul = matched_points[i, 0, 0]
+            vl = matched_points[i, 0, 1]
+            ur = matched_points[i, 1, 0]
+            vr = matched_points[i, 1, 1]
+
+            # Homogeneous coordinates
+            point = np.array([ul, vl, 1], np.float32)
+            point_prime = np.array([ur, vr, 1], np.float32)
+
+            # Applying epipolar constraint to the points to check if they are inliers
+            epipolar_constraint = np.matmul(F, point.T)
+            epipolar_constraint = np.multiply(point_prime, epipolar_constraint.T)
+
+            error = np.sum(epipolar_constraint)
+            if abs(error) < threshold:
+                num_filtered_matches += 1
+                match_f = [[ul, vl], [ur, vr]]
+                filtered_matches.append(match_f)
+
+        if number_of_inliers < num_filtered_matches:
+            number_of_inliers = num_filtered_matches
+            filtered_matches = np.asarray(filtered_matches)
+            matches_p = filtered_matches[:, 0]
+            matches_p_prime = filtered_matches[:, 1]
+
+            # Compute the fundamental matrix for the matched pairs
+            A_matrix = get_fundamental_matrix(matches_p, matches_p_prime)
+
+            # Set for the output array of best matched points
+            filnal_matches = filtered_matches
 
 
-def find_inliers_wa(matching_pairs, A,threshold):
-    number_of_inliers = 0
-    filtered_matches = []  
-    final_matching_pairs = [] 
-    for i in range(len(matching_pairs)):
-        left_pt = matching_pairs[i][0].tolist()
-        np.array(left_pt.append(1))
-        right_pt = matching_pairs[i][1].tolist()
-        np.array(right_pt.append(1))
-
-        epipolar_constraint = np.matmul(left_pt,A)
-        epipolar_constraint = np.matmul(epipolar_constraint,right_pt)
-        # ipdb.set_trace()
-        if abs(epipolar_constraint) < threshold:
-            filtered_matches.append(cv2.DMatch(i, i, 0))
-            final_matching_pairs.append(matching_pairs[i])
-            number_of_inliers += 1
- 
-    return number_of_inliers , filtered_matches ,final_matching_pairs
+    return A_matrix, filnal_matches
 
 
-# #without uncertainty or randomness
-# def ransac_wa(keypoints1, keypoints2, matched_features, num_iterations, threshold):
+def visualize_matches(image1, image2, matched_points):
 
-#     # Perform RANSAC to find the best homography
-#     A_matrix = None
-#     matching_pairs = np.float32([[[keypoints1[m.queryIdx].pt[0],keypoints1[m.queryIdx].pt[1]],[keypoints2[m.queryIdx].pt[0],keypoints2[m.queryIdx].pt[1]]] for m in matched_features])
+    # Handling the case of a color or greyscale image passed to the visualizer
+    if len(image1.shape) == 3:
+        height1, width1, depth1 = image1.shape
+        height2, width2, depth2 = image2.shape
+        shape = (max(height1, height2), width1 + width2, depth1)
 
-#     filtered_matches = []
-#     final_matching_pairs=[]
-#     count = 0 
-#     final_matches = None
-#     for i in range(len(matched_features)-8):
-#         # Randomly select 8 matched features
-#         try:
-#             random_matches = []
-#             add= 0
-#             for count in range(8):
-#                 random_matches.append(matched_features[i+add])
-#                 add+=1
-#             random_pairs = np.float32([[[keypoints1[m.queryIdx].pt[0],keypoints1[m.queryIdx].pt[1]],[keypoints2[m.queryIdx].pt[0],keypoints2[m.queryIdx].pt[1]]] for m in random_matches])
+    elif len(image1.shape) == 2:
+        height1, width1, depth1 = image1.shape
+        height2, width2, depth2 = image2.shape
+        shape = (max(height1, height2), width1 + width2)
 
-#             # Find the homography matrix
-#             A = find_fundamental_mat(random_pairs)
-#             inliers, filtered_matches, matching_pairs = find_inliers_wa(matching_pairs, A,threshold)
-#             # ipdb.set_trace()    
-#             if inliers > count:
-#                 # filtered_matches.append(random_matches)
-#                 count = inliers
-#                 A_matrix = A
-#                 final_matches = filtered_matches   
-#                 final_matching_pairs = matching_pairs
-#         except UnboundLocalError or ValueError:
-#             print("Not enough matches found")
-#             A_matrix = None
-#             final_matches =None
-            
+    image_combined = np.zeros(shape, type(image1.flat[0]))  # blank side-by-side images
+    image_combined[0:height1, 0:width1] = image1  # fill in left side image
+    image_combined[0:height1, width1:width1 + width2] = image2  # fill in right side image
+    image_1_2 = image_combined.copy()
 
-#     print("RANSAC performed")
-#     print("Number of inliers", count)
-#     return A_matrix, final_matches, final_matching_pairs
+    circle_size = 4
+    red = [0, 0, 255]
+    cyan = [255, 255, 0]
+    yellow = [0, 255, 255]
+
+    # Mark each matched corner pair with a circle and draw a line between them
+    for i in range(len(matched_points)):
+        corner1_x = matched_points[i][0][0]
+        corner1_y = matched_points[i][0][1]
+        corner2_x = matched_points[i][1][0]
+        corner2_y = matched_points[i][1][1]
+
+        cv2.line(image_1_2, (int(corner1_x), int(corner1_y)), (int(corner2_x + image1.shape[1]), int(corner2_y)), red,
+                 1)
+        cv2.circle(image_1_2, (int(corner1_x), int(corner1_y)), circle_size, cyan, 1)
+        cv2.circle(image_1_2, (int(corner2_x) + image1.shape[1], int(corner2_y)), circle_size, yellow, 1)
+
+    # Resize for better displaying
+    scale = 1.5
+    height = image_1_2.shape[0] / scale
+    width = image_1_2.shape[1] / scale
+    im = cv2.resize(image_1_2, (int(width), int(height)))
+
+    # Save as "".png
+    cv2.imwrite('Filtered matches' + '.png', im)
+    cv2.imshow("Matches visualizing", im)
+    cv2.waitKey(0)
+

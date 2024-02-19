@@ -6,54 +6,52 @@ import matplotlib.pyplot as plt
 
 
 
+def find_linear_traingulation(Camera_mat, camera_pose, best_matched_points):
 
-def find_initial_traingulation(camera_poses, matching_points, calib_mat):
-    # Create a matrix to store the coefficients of the system of linear equations
-    cheirality_count = [] 
-    for c,camera_pose in enumerate(camera_poses):
-        t = camera_pose[0]
-        r = camera_pose[1]
-        print(t,r)
-        Tr = np.append(r,t,axis=1)
-        p = np.matmul(calib_mat,Tr)
-        m = np.append(calib_mat,[[0],[0],[0]],axis=1)
-        curr_count = 0
-        
-        for i in range(len(matching_points)):
-            ul, vl = matching_points[i][0]
-            # ipdb.set_trace()
-            ur, vr = matching_points[i][1]
-            A = np.zeros((4, 3))
-            b = np.zeros((4, 1))
+    left_point = best_matched_points[:, 0]
+    right_point = best_matched_points[:, 1]
 
-            # Add the coefficients to the matrix
+    ones = np.ones((left_point.shape[0], 1))
 
-            A[0] = [ur*m[2,0] - m[0,0], ur*m[2,1] - m[0,1], ur*m[2,2] - m[0,2]]
+    # Convert the image coordinates to homogenous coordinates
+    points_1 = np.concatenate((left_point, ones), axis=1)
+    points_2 = np.concatenate((right_point, ones), axis=1)
+    # print(points_1)
 
-            A[1] = [vr*m[2,0] - m[1,0], vr*m[2,1] - m[1,1], vr*m[2,2] - m[1,2]]
-            A[2] = [ul*p[2,0] - p[0,0], ul*p[2,1] - p[0,1], ul*p[2,2] - p[0,2]]
-            A[3] = [vl*p[2,0] - p[1,0], vl*p[2,1] - p[1,1], vl*p[2,2] - p[1,2]]
+    # Calculate the camera pose from the position vector and rotation matrix
+    t,R = camera_pose
 
-            b[0] = [m[0,3]-m[2,3]]
-            b[1] = [m[1,3]-m[2,3]]
-            b[2] = [p[0,3]-p[2,3]]
-            b[3] = [p[0,3]-p[2,3]]
+    t = t.reshape((3, 1))                           # make into column vector
+    Transformation_mat = np.append(R, -t, axis=1).tolist() 
+    Transformation_mat.append([0,0,0,1])         # [3 x 4] matrix
+    Transformation_mat = np.array(Transformation_mat)
 
-            Xr = np.matmul(np.linalg.inv(np.matmul(A.T,A)),np.matmul(A.T,b))
-            colors= ["red", "blue", "green", "orange"]
-            plt.plot(vr,Xr[2][0],marker="o", color=colors[c])
+    d1= np.array([0,0,0])
+    K=np.append(Camera_mat,d1.reshape((3, 1)) , axis=1)
+    Projection_left = K @ Transformation_mat
+    Projection_right= K
 
-            r3 = camera_pose[1][2,:]
-            C = camera_pose[0]
-            if np.matmul(r3,(Xr-C)) > 0:
-                curr_count+=1
-        cheirality_count.append(curr_count)
+    X_pts = []
+    num_points = best_matched_points.shape[0]
 
-        plt.xlabel("ur")
-        plt.xlabel("Xr")
+    for i in range(num_points):
+        X_1_i = skew_matrix(points_1[i]) @ Projection_right
+        X_2_i = skew_matrix(points_2[i]) @ Projection_left
 
-        plt.show()
-    index= cheirality_count.index(max(cheirality_count))
+        x_P = np.vstack((X_1_i, X_2_i))
+        _, _, V_T = np.linalg.svd(x_P)
+        X_pt = V_T[-1][:]
 
-    return camera_poses[index]
+        X_pt = X_pt / X_pt[3]
+        # print('X_pt: ', X_pt)
+        X_pt = X_pt[0:3]                    # discard the fourth value to make non homogeneous coordinates
 
+        X_pts.append(X_pt)
+
+    return X_pts , Projection_right, Projection_left
+
+def skew_matrix(x):
+    X = np.array([[0, -x[2] , x[1]],
+                  [x[2], 0, -x[0]],
+                  [-x[1], x[0], 0]])
+    return X
