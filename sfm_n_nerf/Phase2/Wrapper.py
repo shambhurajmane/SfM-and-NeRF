@@ -7,10 +7,11 @@ import imageio
 import torch
 import matplotlib.pyplot as plt
 import os
-
+import wandb
 from NeRFModel import *
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+from Utils import NeRFDataSetLoader
 np.random.seed(0)
 
 def loadDataset(data_path, mode):
@@ -23,6 +24,18 @@ def loadDataset(data_path, mode):
         images: images
         pose: corresponding camera pose in world frame
     """
+    loader = NeRFDataSetLoader(mode, data_path)
+    list = [0,1]
+    tensor_list = torch.tensor(list)
+    print(tensor_list)
+    images, poses, camera_info = loader.getitem(tensor_list)
+    #print(images.shape)
+    #print(poses.shape)
+    #print(camera_info.shape)
+    #images, poses, camera_info = 1, 1, 1
+
+    return images, poses, camera_info 
+
 
 def PixelToRay(camera_info, pose, pixelPosition, args):
     """
@@ -34,6 +47,38 @@ def PixelToRay(camera_info, pose, pixelPosition, args):
     Outputs:
         ray origin and direction
     """
+    # pixel position to ray origin and direction
+    height, width, camera_matrix = camera_info
+    focal_length = camera_matrix[0, 0]
+    near = 2.0
+    far = 6.0
+    camera_orgin = [0, 0, 0]
+    ray_origin_in_camera_coordinate = [0, 0, -1]
+    pixel_x = (pixelPosition[0] - width / 2) / focal_length
+    pixel_y = (pixelPosition[1] - height / 2) / focal_length
+    pixel_position_in_camera_coordinate = [pixel_x, pixel_y, 0]
+    ray_direction_in_camera_coordinate = pixel_position_in_camera_coordinate - camera_orgin
+    ray_direction_in_world_coordinate = np.dot(ray_direction_in_camera_coordinate, pose[:3, :3].T)
+    ray_origin_in_world_coordinate = np.dot(ray_origin_in_camera_coordinate, pose[:3, :3].T) + pose[:3, 3]  #
+    ray_origin = torch.tensor(ray_origin_in_world_coordinate)
+    ray_direction = torch.tensor(ray_direction_in_world_coordinate)
+    return ray_origin, ray_direction
+    
+def sampleRay(ray_origin, ray_direction, args):
+    """
+    Input:
+        ray_origin: origins of input rays
+        ray_direction: direction of input rays
+        args: get sample rate
+    Outputs:
+        A set of rays
+    """
+    # sample rays
+    t_vals = torch.linspace(args.near, args.far, args.n_sample)
+    noise = torch.rand(t_vals.shape) * (args.far - args.near) / args.n_sample
+    t_vals = t_vals + noise
+    ray = ray_origin + t_vals[:, None] * ray_direction
+    return ray 
 
 def generateBatch(images, poses, camera_info, args):
     """
@@ -45,6 +90,22 @@ def generateBatch(images, poses, camera_info, args):
     Outputs:
         A set of rays
     """
+    
+    # randomly select a set of rays
+    image_index = random.randint(0, images.shape[0])
+    image = images[image_index]
+    camera_pose = poses[image_index]
+    camera_info = camera_info[image_index]
+    rays_origin = []
+    rays_direction = []
+    for i in range(args.n_rays_batch):
+        # randomly select a pixel
+        pixelPosition = [random.randint(0, camera_info[0]), random.randint(0, camera_info[1])]
+        ray_origin, ray_direction = PixelToRay(camera_info, camera_pose, pixelPosition, args)
+        ray_origins = sampleRay(ray_origin, ray_direction, args)
+        ray_directions = ray_direction.expand(args.n_sample, 3)
+    return ray_origins, ray_directions
+    
 
 def render(model, rays_origin, rays_direction, args):
     """
@@ -57,12 +118,78 @@ def render(model, rays_origin, rays_direction, args):
     """
 
 def loss(groundtruth, prediction):
+    
+    pass
 
+def ssim_map(groundtruth, prediction):
+    pass
+
+def findNearFar(image, pose, camera_info):
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            ray_origin, ray_direction = PixelToRay(camera_info, pose, [i, j], args)
+            near = min(near, ray_origin[2])
+            far = max(far, ray_origin[2])
 
 def train(images, poses, camera_info, args):
+    # initialize tensorboard, wandb, model, optimizer, scheduler
+    Writer = SummaryWriter(args.logs_path)
+    wandb.init(project="NeRF", 
+               name="NeRF",
+               config=args)
+    
+    model = NeRFmodel(args.n_pos_freq, args.n_dirc_freq).to(device)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lrate)
+    decay_steps = args.lrate_decay * 1000
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, args.lrate_decay)
+    if args.load_checkpoint:
+        checkpoint = torch.load(args.checkpoint_path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+        start_iter = checkpoint['iter']
+    else:
+        start_iter = 0
+        
+    # find near and far range for each image in the dataset by projecting the 2D bounding box to 3D space using camera pose and camera matrix
+    for i in range(images.shape[0]):
+        near, far = findNearFar(images[i], poses[i], camera_info[i])
+        
+    
+    # start training
+    for i in range(start_iter, args.max_iters):
+        rays_origins, rays_directions  = generateBatch(images, poses, camera_info, args)
+        rgb = render(model, rays_origins, rays_directions, args)
+        loss = loss(images, rgb)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        if 
+        scheduler.step()
+        if i % args.save_ckpt_iter == 0:
+            torch.save({
+                'iter': i,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': scheduler.state_dict()
+            }, args.checkpoint_path)
+        if i % 5 == 0:
+            plt.imsave(args.images_path + str(i) + '.png', rgb.detach().cpu().numpy())
+        psnr = 10 * torch.log10(1.0 / loss) 
+        wandb.log({'PSNR': float(psnr.item()), 'iter': i})
+        Writer.add_scalar('PSNR', float(psnr.item()), i)   
+        ssim_val = ssim_map(images, rgb)
+        Writer.add_scalar('SSIM', float(ssim_val.item()), i)
+        wandb.log({'SSIM': float(ssim_val.item()), 'iter': i})
+        Writer.add_scalar('Loss', float(loss.item()), i)
+        wandb.log({'Loss': float(loss.item()), 'iter': i})
+    Writer.close()  
+    wandb.finish()
     
 
 def test(images, poses, camera_info, args):
+    pass
 
 
 def main(args):
@@ -83,6 +210,16 @@ def configParser():
     parser.add_argument('--data_path',default="./Phase2/Data/lego/",help="dataset path")
     parser.add_argument('--mode',default='train',help="train/test/val")
     parser.add_argument('--lrate',default=5e-4,help="training learning rate")
+    parser.add_argument('--lrate_decay', type=int, default=250,help='exponential learning rate decay (in 1000s)')   # update 1
+    # pre-crop options  : update 2
+    parser.add_argument("--precrop_iters", type=int, default=0,
+                        help='number of steps to train on central crops')
+    parser.add_argument("--precrop_frac", type=float,
+                        default=.5, help='fraction of img taken for central crops') 
+    # near and far range    : update 3
+    parser.add_argument('--near', type=int, default=2)
+    parser.add_argument('--far',type=int, default=6)
+    
     parser.add_argument('--n_pos_freq',default=10,help="number of positional encoding frequencies for position")
     parser.add_argument('--n_dirc_freq',default=4,help="number of positional encoding frequencies for viewing direction")
     parser.add_argument('--n_rays_batch',default=32*32*4,help="number of rays per batch")
@@ -99,3 +236,4 @@ if __name__ == "__main__":
     parser = configParser()
     args = parser.parse_args()
     main(args)
+    
