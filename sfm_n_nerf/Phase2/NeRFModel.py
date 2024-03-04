@@ -50,7 +50,7 @@ class NeRFmodel(nn.Module):
         for i in range(0, L):
             out.append(torch.sin(2**i * x).type(torch.float32))
             out.append(torch.cos(2**i * x).type(torch.float32)) 
-        y = torch.cat(out, dim=0)
+        y = torch.cat(out, dim=1)
 
         return y
 
@@ -58,14 +58,14 @@ class NeRFmodel(nn.Module):
         #############################
         # network structure
         #############################
+        
         emb_x= self.position_encoding(pos, self.embed_pos_L)
         emb_dir = self.position_encoding(direction, self.embed_direction_L)
         x = self.block1(emb_x)
-        x = self.block2(torch.cat([x, emb_x], dim=0))
-        ipdb.set_trace()    
+        x = self.block2(torch.cat([x, emb_x], dim=1))
         
-        x, sigma = x[:-1], self.relu(x[-1])
-        x = self.block3(torch.cat([x, emb_dir], dim=0))
+        x, sigma = x[:,:-1], self.relu(x[:,-1])
+        x = self.block3(torch.cat([x, emb_dir], dim=1))
         output = self.block4(x)
 
         return output, sigma

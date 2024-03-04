@@ -97,8 +97,8 @@ def generateBatch(images, poses, camera_info, args):
     image = images[image_index]
     camera_pose = poses[image_index]
     camera_info = camera_info[image_index]
-    rays_origin = []
-    rays_direction = []
+    batch_rays_origin = []
+    batch_rays_direction = []
     for i in range(args.n_rays_batch):
         # randomly select a pixel
         pixelPosition = [random.randint(0, camera_info[0]), random.randint(0, camera_info[1])]
@@ -106,6 +106,11 @@ def generateBatch(images, poses, camera_info, args):
         ray_origins, delta = sampleRay(ray_origin, ray_direction, args)
         
         ray_directions = ray_direction.expand(args.n_sample, 3)
+        
+        batch_rays_origin.append(ray_origins)
+        batch_rays_direction.append(ray_directions)
+    ray_origins = torch.stack(batch_rays_origin)
+    ray_directions = torch.stack(batch_rays_direction)
     return ray_origins.to(device), delta, ray_directions.to(device)
     
 
