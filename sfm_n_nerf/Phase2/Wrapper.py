@@ -10,7 +10,7 @@ import os
 import wandb
 from NeRFModel import *
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+import ipdb 
 from Utils import NeRFDataSetLoader
 np.random.seed(0)
 
@@ -46,18 +46,17 @@ def PixelToRay(camera_info, pose, pixelPosition, args):
     """
     # pixel position to ray origin and direction
     height, width, camera_matrix = camera_info
-    focal_length = camera_matrix[0, 0]
+    focal_length = camera_matrix[0][0]
     near = 2.0
     far = 6.0
-    camera_orgin = [0, 0, 0]
+    camera_orgin = np.array([0, 0, 0])
     ray_origin_in_camera_coordinate = [0, 0, -1]
     pixel_x = (pixelPosition[0] - width / 2) / focal_length
     pixel_y = (pixelPosition[1] - height / 2) / focal_length
-    pixel_position_in_camera_coordinate = [pixel_x, pixel_y, 0]
+    pixel_position_in_camera_coordinate = np.array([pixel_x, pixel_y, 0])
     ray_direction_in_camera_coordinate = pixel_position_in_camera_coordinate - camera_orgin
     ray_direction_in_world_coordinate = np.dot(ray_direction_in_camera_coordinate, pose[:3, :3].T)
-    ray_origin_in_world_coordinate = np.dot(ray_origin_in_camera_coordinate, pose[:3, :3].T) + pose[:3, 3]  #
-    
+    ray_origin_in_world_coordinate = torch.add(torch.tensor(np.dot(ray_origin_in_camera_coordinate, pose[:3, :3].T)) ,pose[:3, 3])  #
     ray_origin = torch.tensor(ray_origin_in_world_coordinate)
     ray_direction = torch.tensor(ray_direction_in_world_coordinate)
     return ray_origin, ray_direction
@@ -72,11 +71,15 @@ def sampleRay(ray_origin, ray_direction, args):
         A set of rays
     """
     # sample rays
+    delta = [0]
     t_vals = torch.linspace(args.near, args.far, args.n_sample)
     noise = torch.rand(t_vals.shape) * (args.far - args.near) / args.n_sample
     t_vals = t_vals + noise
+    for i in range(0,t_vals.shape[0]-1):
+        delta.append(t_vals[i+1] - t_vals[i])
+        
     ray = ray_origin + t_vals[:, None] * ray_direction
-    return ray , t_vals
+    return ray , delta
 
 def generateBatch(images, poses, camera_info, args):
     """
@@ -100,12 +103,13 @@ def generateBatch(images, poses, camera_info, args):
         # randomly select a pixel
         pixelPosition = [random.randint(0, camera_info[0]), random.randint(0, camera_info[1])]
         ray_origin, ray_direction = PixelToRay(camera_info, camera_pose, pixelPosition, args)
-        ray_origins, t_vals = sampleRay(ray_origin, ray_direction, args)
+        ray_origins, delta = sampleRay(ray_origin, ray_direction, args)
+        
         ray_directions = ray_direction.expand(args.n_sample, 3)
-    return ray_origins, t_vals , ray_directions
+    return ray_origins.to(device), delta, ray_directions.to(device)
     
 
-def render(model, rays_origin, t_vals, rays_direction, args):
+def render(model, rays_origin, delta, rays_direction, args):
     """
     Input:
         model: NeRF model
@@ -116,8 +120,9 @@ def render(model, rays_origin, t_vals, rays_direction, args):
     """
     rgb = []
     for i in range(rays_origin.shape[0]):
-        rgb_i = model(rays_origin[i], rays_direction[i])
-        rgb.append(rgb_i)
+        rgb, sigma = model(rays_origin[i], rays_direction[i])
+        ipdb.set_trace()
+
     return rgb
     
     
@@ -138,10 +143,10 @@ def findNearFar(image, pose, camera_info):
 
 def train(images, poses, camera_info, args):
     # initialize tensorboard, wandb, model, optimizer, scheduler
-    Writer = SummaryWriter(args.logs_path)
-    wandb.init(project="NeRF", 
-               name="NeRF",
-               config=args)
+    # Writer = SummaryWriter(args.logs_path)
+    # wandb.init(project="NeRF", 
+    #            name="NeRF",
+    #            config=args)
     
     model = NeRFmodel(args.n_pos_freq, args.n_dirc_freq).to(device)
 
@@ -158,14 +163,14 @@ def train(images, poses, camera_info, args):
         start_iter = 0
         
     # find near and far range for each image in the dataset by projecting the 2D bounding box to 3D space using camera pose and camera matrix
-    for i in range(images.shape[0]):
-        near, far = findNearFar(images[i], poses[i], camera_info[i])
+    # for i in range(images.shape[0]):
+    #     near, far = findNearFar(images[i], poses[i], camera_info[i])
         
     
     # start training
     for i in range(start_iter, args.max_iters):
-        rays_origins, t_vals, rays_directions  = generateBatch(images, poses, camera_info, args)
-        rgb = render(model, rays_origins, t_vals, rays_directions, args)
+        rays_origins, delta, rays_directions  = generateBatch(images, poses, camera_info, args)
+        rgb = render(model, rays_origins, delta, rays_directions, args)
         loss = loss(images, rgb)
         optimizer.zero_grad()
         loss.backward()
@@ -232,7 +237,7 @@ def configParser():
     parser.add_argument('--max_iters',default=10000,help="number of max iterations for training")
     parser.add_argument('--logs_path',default="./logs/",help="logs path")
     parser.add_argument('--checkpoint_path',default="./Phase2/example_checkpoint/",help="checkpoints path")
-    parser.add_argument('--load_checkpoint',default=True,help="whether to load checkpoint or not")
+    parser.add_argument('--load_checkpoint',default=False,help="whether to load checkpoint or not")
     parser.add_argument('--save_ckpt_iter',default=1000,help="num of iteration to save checkpoint")
     parser.add_argument('--images_path', default="./image/",help="folder to store images")
     return parser

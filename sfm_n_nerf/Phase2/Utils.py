@@ -45,19 +45,17 @@ class NeRFDataSetLoader():
             image  = cv2.imread(path)             
             #print(type(image))
             image = cv2.resize(image, (250,250))
-            plt.imshow(image)
-            plt.show() 
-            ipdb.set_trace()     
+    
             image_list.append( torch.tensor(image))
             camera_pose_list.append( torch.tensor(self.data["frames"][idx]["transform_matrix"]))
             camera_angle_x =self.data["camera_angle_x"]
             height, width = image.shape[0], image.shape[1]
             focal_length = 0.5* image.shape[0]/math.tan(0.5* camera_angle_x)
             camera_matrix = np.array([[focal_length, 0, width/2], [0, focal_length, height/2], [0, 0, 1]])
-            camera_info_list.append(torch.tensor(camera_matrix))
+            camera_info_list.append([width, height, torch.tensor(camera_matrix)])
         image_tensor = torch.stack(image_list )    
         camera_pose_tensor =  torch.stack(camera_pose_list )
-        camera_info_tensor = torch.stack(camera_info_list) 
+        camera_info_tensor = camera_info_list
         
         
     
