@@ -25,10 +25,7 @@ def loadDataset(data_path, mode):
         pose: corresponding camera pose in world frame
     """
     loader = NeRFDataSetLoader(mode, data_path)
-    list = [0,1]
-    tensor_list = torch.tensor(list)
-    print(tensor_list)
-    images, poses, camera_info = loader.getitem(tensor_list)
+    images, poses, camera_info = loader.getitem()
     #print(images.shape)
     #print(poses.shape)
     #print(camera_info.shape)
@@ -60,6 +57,7 @@ def PixelToRay(camera_info, pose, pixelPosition, args):
     ray_direction_in_camera_coordinate = pixel_position_in_camera_coordinate - camera_orgin
     ray_direction_in_world_coordinate = np.dot(ray_direction_in_camera_coordinate, pose[:3, :3].T)
     ray_origin_in_world_coordinate = np.dot(ray_origin_in_camera_coordinate, pose[:3, :3].T) + pose[:3, 3]  #
+    
     ray_origin = torch.tensor(ray_origin_in_world_coordinate)
     ray_direction = torch.tensor(ray_direction_in_world_coordinate)
     return ray_origin, ray_direction
@@ -78,7 +76,7 @@ def sampleRay(ray_origin, ray_direction, args):
     noise = torch.rand(t_vals.shape) * (args.far - args.near) / args.n_sample
     t_vals = t_vals + noise
     ray = ray_origin + t_vals[:, None] * ray_direction
-    return ray 
+    return ray , t_vals
 
 def generateBatch(images, poses, camera_info, args):
     """
@@ -102,12 +100,12 @@ def generateBatch(images, poses, camera_info, args):
         # randomly select a pixel
         pixelPosition = [random.randint(0, camera_info[0]), random.randint(0, camera_info[1])]
         ray_origin, ray_direction = PixelToRay(camera_info, camera_pose, pixelPosition, args)
-        ray_origins = sampleRay(ray_origin, ray_direction, args)
+        ray_origins, t_vals = sampleRay(ray_origin, ray_direction, args)
         ray_directions = ray_direction.expand(args.n_sample, 3)
-    return ray_origins, ray_directions
+    return ray_origins, t_vals , ray_directions
     
 
-def render(model, rays_origin, rays_direction, args):
+def render(model, rays_origin, t_vals, rays_direction, args):
     """
     Input:
         model: NeRF model
@@ -116,6 +114,13 @@ def render(model, rays_origin, rays_direction, args):
     Outputs:
         rgb values of input rays
     """
+    rgb = []
+    for i in range(rays_origin.shape[0]):
+        rgb_i = model(rays_origin[i], rays_direction[i])
+        rgb.append(rgb_i)
+    return rgb
+    
+    
 
 def loss(groundtruth, prediction):
     
@@ -159,14 +164,14 @@ def train(images, poses, camera_info, args):
     
     # start training
     for i in range(start_iter, args.max_iters):
-        rays_origins, rays_directions  = generateBatch(images, poses, camera_info, args)
-        rgb = render(model, rays_origins, rays_directions, args)
+        rays_origins, t_vals, rays_directions  = generateBatch(images, poses, camera_info, args)
+        rgb = render(model, rays_origins, t_vals, rays_directions, args)
         loss = loss(images, rgb)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        if 
-        scheduler.step()
+        if i % args.lrate_decay == 0:   
+            scheduler.step()
         if i % args.save_ckpt_iter == 0:
             torch.save({
                 'iter': i,
@@ -207,7 +212,7 @@ def main(args):
 
 def configParser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_path',default="./Phase2/Data/lego/",help="dataset path")
+    parser.add_argument('--data_path',default="./Data/ship/",help="dataset path")
     parser.add_argument('--mode',default='train',help="train/test/val")
     parser.add_argument('--lrate',default=5e-4,help="training learning rate")
     parser.add_argument('--lrate_decay', type=int, default=250,help='exponential learning rate decay (in 1000s)')   # update 1
