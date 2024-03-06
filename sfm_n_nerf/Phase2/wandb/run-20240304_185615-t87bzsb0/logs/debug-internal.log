@@ -1,0 +1,210 @@
+2024-03-04 18:56:15,308 INFO    StreamThr :87456 [internal.py:wandb_internal():86] W&B internal server running at pid: 87456, started at: 2024-03-04 18:56:15.307650
+2024-03-04 18:56:15,309 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: status
+2024-03-04 18:56:15,310 INFO    WriterThread:87456 [datastore.py:open_for_write():87] open: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/run-t87bzsb0.wandb
+2024-03-04 18:56:15,311 DEBUG   SenderThread:87456 [sender.py:send():382] send: header
+2024-03-04 18:56:15,312 DEBUG   SenderThread:87456 [sender.py:send():382] send: run
+2024-03-04 18:56:16,734 INFO    SenderThread:87456 [dir_watcher.py:__init__():211] watching files in: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files
+2024-03-04 18:56:16,734 INFO    SenderThread:87456 [sender.py:_start_run_threads():1136] run started: t87bzsb0 with start time 1709596575.30736
+2024-03-04 18:56:16,735 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: check_version
+2024-03-04 18:56:16,736 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: check_version
+2024-03-04 18:56:17,891 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: run_start
+2024-03-04 18:56:17,909 DEBUG   HandlerThread:87456 [system_info.py:__init__():27] System info init
+2024-03-04 18:56:17,910 DEBUG   HandlerThread:87456 [system_info.py:__init__():42] System info init done
+2024-03-04 18:56:17,910 INFO    HandlerThread:87456 [system_monitor.py:start():194] Starting system monitor
+2024-03-04 18:56:17,910 INFO    SystemMonitor:87456 [system_monitor.py:_start():158] Starting system asset monitoring threads
+2024-03-04 18:56:17,910 INFO    HandlerThread:87456 [system_monitor.py:probe():214] Collecting system info
+2024-03-04 18:56:17,911 INFO    SystemMonitor:87456 [interfaces.py:start():190] Started cpu monitoring
+2024-03-04 18:56:17,912 INFO    SystemMonitor:87456 [interfaces.py:start():190] Started disk monitoring
+2024-03-04 18:56:17,912 INFO    SystemMonitor:87456 [interfaces.py:start():190] Started gpu monitoring
+2024-03-04 18:56:17,913 INFO    SystemMonitor:87456 [interfaces.py:start():190] Started memory monitoring
+2024-03-04 18:56:17,913 INFO    SystemMonitor:87456 [interfaces.py:start():190] Started network monitoring
+2024-03-04 18:56:17,923 DEBUG   HandlerThread:87456 [system_info.py:probe():151] Probing system
+2024-03-04 18:56:17,925 DEBUG   HandlerThread:87456 [system_info.py:_probe_git():136] Probing git
+2024-03-04 18:56:17,929 DEBUG   HandlerThread:87456 [system_info.py:_probe_git():144] Probing git done
+2024-03-04 18:56:17,929 DEBUG   HandlerThread:87456 [system_info.py:probe():199] Probing system done
+2024-03-04 18:56:17,929 DEBUG   HandlerThread:87456 [system_monitor.py:probe():223] {'os': 'Linux-6.2.0-39-generic-x86_64-with-glibc2.35', 'python': '3.10.12', 'heartbeatAt': '2024-03-04T23:56:17.923753', 'startedAt': '2024-03-04T23:56:15.305072', 'docker': None, 'cuda': None, 'args': (), 'state': 'running', 'program': '/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper.py', 'codePathLocal': 'Wrapper.py', 'codePath': 'sfm_n_nerf/Phase2/Wrapper.py', 'git': {'remote': 'https://github.com/shambhurajmane/SfM-and-NeRF.git', 'commit': 'dcd8e99e5096060b9bd2dc3593ea1168c50c3c3e'}, 'email': 'shambhuraj.careers@gmail.com', 'root': '/home/shambhuraj/sam/github/SfM-and-NeRF', 'host': 'Astra03', 'username': 'shambhuraj', 'executable': '/usr/bin/python3', 'cpu_count': 14, 'cpu_count_logical': 20, 'cpu_freq': {'current': 2.5513499999999993, 'min': 400.0, 'max': 4480.0}, 'cpu_freq_per_core': [{'current': 2.721, 'min': 400.0, 'max': 4900.0}, {'current': 2.9, 'min': 400.0, 'max': 4900.0}, {'current': 2.656, 'min': 400.0, 'max': 4900.0}, {'current': 2.9, 'min': 400.0, 'max': 4900.0}, {'current': 3.168, 'min': 400.0, 'max': 5000.0}, {'current': 2.9, 'min': 400.0, 'max': 5000.0}, {'current': 2.494, 'min': 400.0, 'max': 4900.0}, {'current': 2.9, 'min': 400.0, 'max': 4900.0}, {'current': 3.052, 'min': 400.0, 'max': 5000.0}, {'current': 1.744, 'min': 400.0, 'max': 5000.0}, {'current': 3.151, 'min': 400.0, 'max': 4900.0}, {'current': 2.9, 'min': 400.0, 'max': 4900.0}, {'current': 1.731, 'min': 400.0, 'max': 3800.0}, {'current': 1.195, 'min': 400.0, 'max': 3800.0}, {'current': 2.413, 'min': 400.0, 'max': 3800.0}, {'current': 2.287, 'min': 400.0, 'max': 3800.0}, {'current': 0.968, 'min': 400.0, 'max': 3800.0}, {'current': 1.272, 'min': 400.0, 'max': 3800.0}, {'current': 2.9, 'min': 400.0, 'max': 3800.0}, {'current': 2.9, 'min': 400.0, 'max': 3800.0}], 'disk': {'/': {'total': 365.614501953125, 'used': 112.75911331176758}}, 'gpu': 'NVIDIA GeForce RTX 3060 Laptop GPU', 'gpu_count': 1, 'gpu_devices': [{'name': 'NVIDIA GeForce RTX 3060 Laptop GPU', 'memory_total': 6442450944}], 'memory': {'total': 15.283981323242188}}
+2024-03-04 18:56:17,930 INFO    HandlerThread:87456 [system_monitor.py:probe():224] Finished collecting system info
+2024-03-04 18:56:17,930 INFO    HandlerThread:87456 [system_monitor.py:probe():227] Publishing system info
+2024-03-04 18:56:17,930 INFO    HandlerThread:87456 [system_monitor.py:probe():229] Finished publishing system info
+2024-03-04 18:56:17,932 DEBUG   SenderThread:87456 [sender.py:send():382] send: files
+2024-03-04 18:56:17,932 INFO    SenderThread:87456 [sender.py:_save_file():1403] saving file wandb-metadata.json with policy now
+2024-03-04 18:56:17,936 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: python_packages
+2024-03-04 18:56:17,936 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: python_packages
+2024-03-04 18:56:17,937 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: stop_status
+2024-03-04 18:56:17,937 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: stop_status
+2024-03-04 18:56:17,938 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: internal_messages
+2024-03-04 18:56:18,735 INFO    Thread-12 :87456 [dir_watcher.py:_on_file_created():271] file/dir created: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/wandb-metadata.json
+2024-03-04 18:56:18,736 INFO    Thread-12 :87456 [dir_watcher.py:_on_file_created():271] file/dir created: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/requirements.txt
+2024-03-04 18:56:19,105 DEBUG   SenderThread:87456 [sender.py:send():382] send: telemetry
+2024-03-04 18:56:19,583 INFO    wandb-upload_0:87456 [upload_job.py:push():131] Uploaded file /tmp/tmpd2mbw9i7wandb/ypowez8s-wandb-metadata.json
+2024-03-04 18:56:19,735 INFO    Thread-12 :87456 [dir_watcher.py:_on_file_created():271] file/dir created: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/output.log
+2024-03-04 18:56:21,107 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: status_report
+2024-03-04 18:56:21,736 INFO    Thread-12 :87456 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/output.log
+2024-03-04 18:56:26,107 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: status_report
+2024-03-04 18:56:31,108 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: status_report
+2024-03-04 18:56:32,938 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: stop_status
+2024-03-04 18:56:32,938 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: internal_messages
+2024-03-04 18:56:32,938 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: stop_status
+2024-03-04 18:56:36,279 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: status_report
+2024-03-04 18:56:39,514 DEBUG   SenderThread:87456 [sender.py:send():382] send: exit
+2024-03-04 18:56:39,514 INFO    SenderThread:87456 [sender.py:send_exit():589] handling exit code: 1
+2024-03-04 18:56:39,514 INFO    SenderThread:87456 [sender.py:send_exit():591] handling runtime: 21
+2024-03-04 18:56:39,515 INFO    SenderThread:87456 [sender.py:_save_file():1403] saving file wandb-summary.json with policy end
+2024-03-04 18:56:39,515 INFO    SenderThread:87456 [sender.py:send_exit():597] send defer
+2024-03-04 18:56:39,516 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:39,516 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 0
+2024-03-04 18:56:39,516 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:39,516 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 0
+2024-03-04 18:56:39,516 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 1
+2024-03-04 18:56:39,516 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:39,516 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 1
+2024-03-04 18:56:39,516 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:39,516 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 1
+2024-03-04 18:56:39,516 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 2
+2024-03-04 18:56:39,516 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:39,516 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 2
+2024-03-04 18:56:39,516 INFO    HandlerThread:87456 [system_monitor.py:finish():203] Stopping system monitor
+2024-03-04 18:56:39,516 DEBUG   SystemMonitor:87456 [system_monitor.py:_start():172] Starting system metrics aggregation loop
+2024-03-04 18:56:39,517 DEBUG   SystemMonitor:87456 [system_monitor.py:_start():179] Finished system metrics aggregation loop
+2024-03-04 18:56:39,517 DEBUG   SystemMonitor:87456 [system_monitor.py:_start():183] Publishing last batch of metrics
+2024-03-04 18:56:39,517 INFO    HandlerThread:87456 [interfaces.py:finish():202] Joined cpu monitor
+2024-03-04 18:56:39,518 INFO    HandlerThread:87456 [interfaces.py:finish():202] Joined disk monitor
+2024-03-04 18:56:39,557 INFO    HandlerThread:87456 [interfaces.py:finish():202] Joined gpu monitor
+2024-03-04 18:56:39,557 INFO    HandlerThread:87456 [interfaces.py:finish():202] Joined memory monitor
+2024-03-04 18:56:39,557 INFO    HandlerThread:87456 [interfaces.py:finish():202] Joined network monitor
+2024-03-04 18:56:39,557 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:39,557 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 2
+2024-03-04 18:56:39,557 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 3
+2024-03-04 18:56:39,557 DEBUG   SenderThread:87456 [sender.py:send():382] send: stats
+2024-03-04 18:56:39,557 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:39,557 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 3
+2024-03-04 18:56:39,558 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:39,558 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 3
+2024-03-04 18:56:39,558 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 4
+2024-03-04 18:56:39,558 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:39,558 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 4
+2024-03-04 18:56:39,558 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:39,558 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 4
+2024-03-04 18:56:39,558 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 5
+2024-03-04 18:56:39,558 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:39,558 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 5
+2024-03-04 18:56:39,558 DEBUG   SenderThread:87456 [sender.py:send():382] send: summary
+2024-03-04 18:56:39,558 INFO    SenderThread:87456 [sender.py:_save_file():1403] saving file wandb-summary.json with policy end
+2024-03-04 18:56:39,558 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:39,558 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 5
+2024-03-04 18:56:39,558 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 6
+2024-03-04 18:56:39,558 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:39,558 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 6
+2024-03-04 18:56:39,559 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:39,559 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 6
+2024-03-04 18:56:39,560 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: status_report
+2024-03-04 18:56:39,741 INFO    Thread-12 :87456 [dir_watcher.py:_on_file_created():271] file/dir created: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/wandb-summary.json
+2024-03-04 18:56:39,955 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 7
+2024-03-04 18:56:39,955 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:39,955 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 7
+2024-03-04 18:56:39,955 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:39,955 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 7
+2024-03-04 18:56:40,515 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:40,742 INFO    Thread-12 :87456 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/config.yaml
+2024-03-04 18:56:41,126 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 8
+2024-03-04 18:56:41,127 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:41,127 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:41,127 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 8
+2024-03-04 18:56:41,127 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:41,127 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 8
+2024-03-04 18:56:41,127 INFO    SenderThread:87456 [job_builder.py:build():296] Attempting to build job artifact
+2024-03-04 18:56:41,128 INFO    SenderThread:87456 [job_builder.py:_get_source_type():426] is repo sourced job
+2024-03-04 18:56:41,148 INFO    SenderThread:87456 [job_builder.py:build():402] adding wandb-job metadata file
+2024-03-04 18:56:41,156 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 9
+2024-03-04 18:56:41,157 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:41,157 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 9
+2024-03-04 18:56:41,157 DEBUG   SenderThread:87456 [sender.py:send():382] send: artifact
+2024-03-04 18:56:41,515 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:41,742 INFO    Thread-12 :87456 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/output.log
+2024-03-04 18:56:44,538 INFO    wandb-upload_1:87456 [upload_job.py:push():89] Uploaded file /home/shambhuraj/.local/share/wandb/artifacts/staging/tmphtnv5r5z
+2024-03-04 18:56:44,545 INFO    wandb-upload_0:87456 [upload_job.py:push():89] Uploaded file /home/shambhuraj/.local/share/wandb/artifacts/staging/tmplhi405qi
+2024-03-04 18:56:46,514 INFO    SenderThread:87456 [sender.py:send_artifact():1494] sent artifact job-https___github.com_shambhurajmane_SfM-and-NeRF.git_sfm_n_nerf_Phase2_Wrapper.py - {'id': 'QXJ0aWZhY3Q6NzQxMTM4NjYw', 'state': 'PENDING', 'artifactSequence': {'id': 'QXJ0aWZhY3RDb2xsZWN0aW9uOjE0NTQzMDQ3OA==', 'latestArtifact': None}}
+2024-03-04 18:56:46,515 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:46,515 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: status_report
+2024-03-04 18:56:46,515 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 9
+2024-03-04 18:56:46,515 INFO    SenderThread:87456 [dir_watcher.py:finish():358] shutting down directory watcher
+2024-03-04 18:56:46,517 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-04 18:56:46,745 INFO    SenderThread:87456 [dir_watcher.py:finish():388] scan: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files
+2024-03-04 18:56:46,746 INFO    SenderThread:87456 [dir_watcher.py:finish():402] scan save: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/wandb-metadata.json wandb-metadata.json
+2024-03-04 18:56:46,746 INFO    SenderThread:87456 [dir_watcher.py:finish():402] scan save: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/config.yaml config.yaml
+2024-03-04 18:56:46,746 INFO    SenderThread:87456 [dir_watcher.py:finish():402] scan save: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/wandb-summary.json wandb-summary.json
+2024-03-04 18:56:46,747 INFO    SenderThread:87456 [dir_watcher.py:finish():402] scan save: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/output.log output.log
+2024-03-04 18:56:46,750 INFO    SenderThread:87456 [dir_watcher.py:finish():402] scan save: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/requirements.txt requirements.txt
+2024-03-04 18:56:46,755 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 10
+2024-03-04 18:56:46,756 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:46,757 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:46,760 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 10
+2024-03-04 18:56:46,763 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:46,763 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 10
+2024-03-04 18:56:46,763 INFO    SenderThread:87456 [file_pusher.py:finish():172] shutting down file pusher
+2024-03-04 18:56:47,438 INFO    wandb-upload_1:87456 [upload_job.py:push():131] Uploaded file /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/config.yaml
+2024-03-04 18:56:47,518 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:47,519 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:48,324 INFO    wandb-upload_0:87456 [upload_job.py:push():131] Uploaded file /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/wandb-summary.json
+2024-03-04 18:56:48,385 INFO    wandb-upload_2:87456 [upload_job.py:push():131] Uploaded file /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/output.log
+2024-03-04 18:56:48,520 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:48,521 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:49,523 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:49,524 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:50,525 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:50,526 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:51,526 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:51,527 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:51,528 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: status_report
+2024-03-04 18:56:52,528 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:52,529 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:53,530 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:53,531 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:54,533 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:54,533 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:54,589 INFO    wandb-upload_3:87456 [upload_job.py:push():131] Uploaded file /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/files/requirements.txt
+2024-03-04 18:56:54,790 INFO    Thread-11 (_thread_body):87456 [sender.py:transition_state():617] send defer: 11
+2024-03-04 18:56:54,790 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:54,790 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 11
+2024-03-04 18:56:54,792 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:54,792 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 11
+2024-03-04 18:56:54,792 INFO    SenderThread:87456 [file_pusher.py:join():178] waiting for file pusher
+2024-03-04 18:56:54,801 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 12
+2024-03-04 18:56:54,801 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:54,801 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 12
+2024-03-04 18:56:54,802 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:54,802 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 12
+2024-03-04 18:56:54,802 INFO    SenderThread:87456 [file_stream.py:finish():595] file stream finish called
+2024-03-04 18:56:55,191 INFO    SenderThread:87456 [file_stream.py:finish():599] file stream finish is done
+2024-03-04 18:56:55,191 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 13
+2024-03-04 18:56:55,191 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:55,192 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 13
+2024-03-04 18:56:55,192 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:55,192 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 13
+2024-03-04 18:56:55,192 INFO    SenderThread:87456 [sender.py:transition_state():617] send defer: 14
+2024-03-04 18:56:55,193 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: defer
+2024-03-04 18:56:55,193 INFO    HandlerThread:87456 [handler.py:handle_request_defer():172] handle defer: 14
+2024-03-04 18:56:55,193 DEBUG   SenderThread:87456 [sender.py:send():382] send: final
+2024-03-04 18:56:55,194 DEBUG   SenderThread:87456 [sender.py:send():382] send: footer
+2024-03-04 18:56:55,194 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: defer
+2024-03-04 18:56:55,194 INFO    SenderThread:87456 [sender.py:send_request_defer():613] handle sender defer: 14
+2024-03-04 18:56:55,195 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:55,195 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: poll_exit
+2024-03-04 18:56:55,196 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:55,196 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: server_info
+2024-03-04 18:56:55,197 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: poll_exit
+2024-03-04 18:56:55,198 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: get_summary
+2024-03-04 18:56:55,199 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: server_info
+2024-03-04 18:56:55,199 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: sampled_history
+2024-03-04 18:56:55,202 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: internal_messages
+2024-03-04 18:56:55,203 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: job_info
+2024-03-04 18:56:55,535 DEBUG   SenderThread:87456 [sender.py:send_request():409] send_request: job_info
+2024-03-04 18:56:55,537 INFO    MainThread:87456 [wandb_run.py:_footer_history_summary_info():3866] rendering history
+2024-03-04 18:56:55,537 INFO    MainThread:87456 [wandb_run.py:_footer_history_summary_info():3898] rendering summary
+2024-03-04 18:56:55,537 INFO    MainThread:87456 [wandb_run.py:_footer_sync_info():3825] logging synced files
+2024-03-04 18:56:55,538 DEBUG   HandlerThread:87456 [handler.py:handle_request():146] handle_request: shutdown
+2024-03-04 18:56:55,538 INFO    HandlerThread:87456 [handler.py:finish():869] shutting down handler
+2024-03-04 18:56:56,203 INFO    WriterThread:87456 [datastore.py:close():296] close: /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/run-t87bzsb0.wandb
+2024-03-04 18:56:56,536 INFO    SenderThread:87456 [sender.py:finish():1572] shutting down sender
+2024-03-04 18:56:56,537 INFO    SenderThread:87456 [file_pusher.py:finish():172] shutting down file pusher
+2024-03-04 18:56:56,537 INFO    SenderThread:87456 [file_pusher.py:join():178] waiting for file pusher

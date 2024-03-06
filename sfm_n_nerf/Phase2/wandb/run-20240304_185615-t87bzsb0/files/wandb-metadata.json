@@ -1,0 +1,148 @@
+{
+    "os": "Linux-6.2.0-39-generic-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "heartbeatAt": "2024-03-04T23:56:17.923753",
+    "startedAt": "2024-03-04T23:56:15.305072",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper.py",
+    "codePathLocal": "Wrapper.py",
+    "codePath": "sfm_n_nerf/Phase2/Wrapper.py",
+    "git": {
+        "remote": "https://github.com/shambhurajmane/SfM-and-NeRF.git",
+        "commit": "dcd8e99e5096060b9bd2dc3593ea1168c50c3c3e"
+    },
+    "email": "shambhuraj.careers@gmail.com",
+    "root": "/home/shambhuraj/sam/github/SfM-and-NeRF",
+    "host": "Astra03",
+    "username": "shambhuraj",
+    "executable": "/usr/bin/python3",
+    "cpu_count": 14,
+    "cpu_count_logical": 20,
+    "cpu_freq": {
+        "current": 2.5513499999999993,
+        "min": 400.0,
+        "max": 4480.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2.721,
+            "min": 400.0,
+            "max": 4900.0
+        },
+        {
+            "current": 2.9,
+            "min": 400.0,
+            "max": 4900.0
+        },
+        {
+            "current": 2.656,
+            "min": 400.0,
+            "max": 4900.0
+        },
+        {
+            "current": 2.9,
+            "min": 400.0,
+            "max": 4900.0
+        },
+        {
+            "current": 3.168,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2.9,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2.494,
+            "min": 400.0,
+            "max": 4900.0
+        },
+        {
+            "current": 2.9,
+            "min": 400.0,
+            "max": 4900.0
+        },
+        {
+            "current": 3.052,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 1.744,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 3.151,
+            "min": 400.0,
+            "max": 4900.0
+        },
+        {
+            "current": 2.9,
+            "min": 400.0,
+            "max": 4900.0
+        },
+        {
+            "current": 1.731,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 1.195,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2.413,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2.287,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 0.968,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 1.272,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2.9,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2.9,
+            "min": 400.0,
+            "max": 3800.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 365.614501953125,
+            "used": 112.75911331176758
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+            "memory_total": 6442450944
+        }
+    ],
+    "memory": {
+        "total": 15.283981323242188
+    }
+}

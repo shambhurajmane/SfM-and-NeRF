@@ -31,6 +31,31 @@ class NeRFDataSetLoader():
         #print(type(self.data))
         #print(self.data["frames"][idx]["transform_matrix"])
 
+    def center_crop(image, crop_size):
+        """
+        Center crop the input image to the specified size.
+
+        Parameters:
+        - image: Input image (NumPy array).
+        - crop_size: Tuple (width, height) specifying the target crop size.
+
+        Returns:
+        - Cropped image.
+        """
+
+        # Get image dimensions
+        height, width = image.shape[:2]
+
+        # Calculate crop coordinates
+        crop_x = max(0, (width - crop_size[0]) // 2)
+        crop_y = max(0, (height - crop_size[1]) // 2)
+
+        # Perform the crop
+        cropped_image = image[crop_y:crop_y + crop_size[1], crop_x:crop_x + crop_size[0]]
+
+        return cropped_image
+    
+    
     def getitem(self):
         
         image_list = [] 
@@ -44,7 +69,11 @@ class NeRFDataSetLoader():
             #print(path)
             image  = cv2.imread(path)             
             #print(type(image))
-            image = cv2.resize(image, (250,250))
+            # image = cv2.resize(image, (50,50))
+            crop_size = (500,500)
+            image = NeRFDataSetLoader.center_crop(image, crop_size)
+            image = cv2.resize(image, (50,50))
+            
     
             image_list.append( torch.tensor(image))
             camera_pose_list.append( torch.tensor(self.data["frames"][idx]["transform_matrix"]))

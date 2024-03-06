@@ -1,0 +1,28 @@
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_setup.py:_flush():76] Current SDK version is 0.16.3
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_setup.py:_flush():76] Configure stats pid to 87383
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_setup.py:_flush():76] Loading settings from /home/shambhuraj/.config/wandb/settings
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_setup.py:_flush():76] Loading settings from /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/settings
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'sfm_n_nerf/Phase2/Wrapper.py', 'program_abspath': '/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper.py', 'program': '/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper.py'}
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_setup.py:_flush():76] Applying login settings: {'api_key': '***REDACTED***'}
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_init.py:_log_setup():526] Logging user logs to /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/logs/debug.log
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_init.py:_log_setup():527] Logging internal logs to /home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/wandb/run-20240304_185615-t87bzsb0/logs/debug-internal.log
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_init.py:init():566] calling init triggers
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_init.py:init():573] wandb.init called with sweep_config: {}
+config: {'data_path': './Data/ship/', 'mode': 'train', 'lrate': 0.0005, 'lrate_decay': 250, 'precrop_iters': 0, 'precrop_frac': 0.5, 'near': 2, 'far': 6, 'n_pos_freq': 10, 'n_dirc_freq': 4, 'n_rays_batch': 4096, 'n_sample': 400, 'max_iters': 10000, 'logs_path': './logs/', 'checkpoint_path': './Phase2/checkpoints/', 'load_checkpoint': False, 'save_ckpt_iter': 1000, 'images_path': './image/'}
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_init.py:init():616] starting backend
+2024-03-04 18:56:15,305 INFO    MainThread:87383 [wandb_init.py:init():620] setting up manager
+2024-03-04 18:56:15,306 INFO    MainThread:87383 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2024-03-04 18:56:15,307 INFO    MainThread:87383 [wandb_init.py:init():628] backend started and connected
+2024-03-04 18:56:15,308 INFO    MainThread:87383 [wandb_init.py:init():720] updated telemetry
+2024-03-04 18:56:15,311 INFO    MainThread:87383 [wandb_init.py:init():753] communicating run to backend with 90.0 second timeout
+2024-03-04 18:56:16,735 INFO    MainThread:87383 [wandb_run.py:_on_init():2262] communicating current version
+2024-03-04 18:56:17,886 INFO    MainThread:87383 [wandb_run.py:_on_init():2271] got version response 
+2024-03-04 18:56:17,886 INFO    MainThread:87383 [wandb_init.py:init():804] starting run threads in backend
+2024-03-04 18:56:17,937 INFO    MainThread:87383 [wandb_run.py:_console_start():2241] atexit reg
+2024-03-04 18:56:17,937 INFO    MainThread:87383 [wandb_run.py:_redirect():2096] redirect: wrap_raw
+2024-03-04 18:56:17,937 INFO    MainThread:87383 [wandb_run.py:_redirect():2161] Wrapping output streams.
+2024-03-04 18:56:17,937 INFO    MainThread:87383 [wandb_run.py:_redirect():2186] Redirects installed.
+2024-03-04 18:56:17,937 INFO    MainThread:87383 [wandb_init.py:init():847] run started, returning control to user process
+2024-03-04 18:56:57,842 WARNING MsgRouterThr:87383 [router.py:message_loop():77] message_loop has been closed

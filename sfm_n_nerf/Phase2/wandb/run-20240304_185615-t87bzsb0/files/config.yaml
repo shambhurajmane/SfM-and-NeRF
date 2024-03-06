@@ -1,0 +1,81 @@
+wandb_version: 1
+
+data_path:
+  desc: null
+  value: ./Data/ship/
+mode:
+  desc: null
+  value: train
+lrate:
+  desc: null
+  value: 0.0005
+lrate_decay:
+  desc: null
+  value: 250
+precrop_iters:
+  desc: null
+  value: 0
+precrop_frac:
+  desc: null
+  value: 0.5
+near:
+  desc: null
+  value: 2
+far:
+  desc: null
+  value: 6
+n_pos_freq:
+  desc: null
+  value: 10
+n_dirc_freq:
+  desc: null
+  value: 4
+n_rays_batch:
+  desc: null
+  value: 4096
+n_sample:
+  desc: null
+  value: 400
+max_iters:
+  desc: null
+  value: 10000
+logs_path:
+  desc: null
+  value: ./logs/
+checkpoint_path:
+  desc: null
+  value: ./Phase2/checkpoints/
+load_checkpoint:
+  desc: null
+  value: false
+save_ckpt_iter:
+  desc: null
+  value: 1000
+images_path:
+  desc: null
+  value: ./image/
+_wandb:
+  desc: null
+  value:
+    python_version: 3.10.12
+    cli_version: 0.16.3
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1709596575.30736
+    t:
+      1:
+      - 1
+      - 55
+      2:
+      - 1
+      - 55
+      3:
+      - 13
+      - 16
+      - 23
+      4: 3.10.12
+      5: 0.16.3
+      8:
+      - 5
+      13: linux-x86_64
