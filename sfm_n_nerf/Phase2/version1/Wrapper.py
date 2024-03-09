@@ -79,7 +79,7 @@ def sampleRay(ray_origin, ray_direction, args):
     ray = ray_origin + t_vals[:, None] * ray_direction
     return ray , torch.tensor(delta)
 
-def generateBatch(images, poses, camera_info,mode,count, args):
+def generateBatch(images, poses, camera_info, args):
     """
     Input:
         images: all images in dataset
@@ -98,19 +98,11 @@ def generateBatch(images, poses, camera_info,mode,count, args):
     batch_rays_origin = []
     batch_rays_direction = []
     batch_delta = []
-     
     batch_pixelColors = []
-    if mode == 'train':
-        for i in range(args.n_rays_batch):
+    for i in range(camera_info[0]):
+        for j in range(camera_info[1]):
             # randomly select a pixel
-            if count <args.precrop_iters:
-                height, width = image.shape[:2]
-                crop_size = (150, 150)  
-                crop_x = max(0, (width - crop_size[0]) // 2)
-                crop_y = max(0, (height - crop_size[1]) // 2)
-                pixelPosition = random.randint(crop_y, crop_y + crop_size[1]-1), random.randint(crop_x,crop_x + crop_size[0]-1)
-            else:
-                pixelPosition = random.randint(0, camera_info[0]-1), random.randint(0, camera_info[1]-1)
+            pixelPosition = [i, j]
             ray_origin, ray_direction = PixelToRay(camera_info, camera_pose, pixelPosition, args)
             ray_origins, delta = sampleRay(ray_origin, ray_direction, args)
             
@@ -123,24 +115,6 @@ def generateBatch(images, poses, camera_info,mode,count, args):
             color = image[pixelPosition[0], pixelPosition[1]]
             normalized_color = color / 255
             batch_pixelColors.append(normalized_color)
-    elif mode == 'test':
-        for i in range(camera_info[0]):
-            for j in range(camera_info[1]):
-                # randomly select a pixel
-                pixelPosition = [i, j]
-                ray_origin, ray_direction = PixelToRay(camera_info, camera_pose, pixelPosition, args)
-                ray_origins, delta = sampleRay(ray_origin, ray_direction, args)
-                
-                ray_directions = ray_direction.expand(args.n_sample, 3)
-                
-                batch_rays_origin.append(ray_origins)
-                batch_rays_direction.append(ray_directions)
-                batch_delta.append(delta)
-
-                color = image[pixelPosition[0], pixelPosition[1]]
-                normalized_color = color / 255
-                batch_pixelColors.append(normalized_color)
-        
         
     ray_origins = torch.stack(batch_rays_origin).to(device)
     ray_directions = torch.stack(batch_rays_direction).to(device)
@@ -149,6 +123,7 @@ def generateBatch(images, poses, camera_info,mode,count, args):
     
     return ray_origins, batch_delta, ray_directions, pixel_colors
     
+
 def render(model, rays_origin, delta, rays_direction, args):
     """
     Input:
@@ -159,28 +134,61 @@ def render(model, rays_origin, delta, rays_direction, args):
         rgb values of input rays
     """
     rgb_data = []
+    # for i in range(rays_origin.shape[0]):
+    #     rgb, sigma = model(rays_origin[i], rays_direction[i])
+    #     # alpha = 1 - torch.exp(-sigma * delta[i])
+    #     # weights = torch.exp(-torch.cumsum(sigma[:-1] * delta[i][:1], dim=0))
+    #     # weights = torch.cat((torch.tensor([0]).to(device), weights)).expand((1,400))
+    
+    #     # rgb = torch.sum(weights.T * rgb, dim=0)
+    #     # weights_sum = torch.sum(weights, dim=0)
+    #     sigma = sigma.unsqueeze(1)
+    #     delta_current = delta[i].unsqueeze(1)
+    #     rgb_map = render_rays2(rgb, sigma, delta_current,  rays_origin, rays_direction)
+    #     rgb_data.append(rgb_map)
+    #     print("rgb_map",rgb_map)
+    # ipdb.set_trace()  
     for i in range(rays_origin.shape[0]):
         rgb, sigma = model(rays_origin[i], rays_direction[i])
-        rgb_map = render_rays2(rgb, sigma, delta[i])
+        
+        alpha = 1 - torch.exp(-sigma * delta[i])
+        weights = torch.exp(-torch.cumsum(sigma * delta[i], dim=0))
+        # weights = torch.cat((torch.tensor([0]), weights))
+        rgb_map = torch.sum(weights.unsqueeze(1) * rgb, dim=0) / (torch.sum(weights) + 1e-10)
         rgb_data.append(rgb_map)
+        # print("rgb_map", rgb_map)
 
     rgb_data = torch.stack(rgb_data)  
         
     return rgb_data
 
-def render_rays2(rgb_list, depth_list, delta_list):
-    """ As per the paper"""  
-
-    alpha = 1 - torch.exp( -1 * depth_list * delta_list)
-    weights = compute_transmittance(1 - alpha  +  1e-10)  * alpha
-    weights = weights.to(device)
-    pixel_value = torch.sum(weights[...,None] * rgb_list, -2)
-    return pixel_value 
+def render_rays2(rgb_list, depth_list, delta_list,  ray_origin, ray_direction):
+    """ As per the paper""" 
+    #print("start")  
+    #print(rgb_list[100]  )  
+    alpha = 1 - torch.exp(-1* depth_list * delta_list )
+    #print(alpha)
+    #print(alpha[10])
+    weights = compute_transmittance(1 - alpha)  * alpha
+    #print("*****")
+    #print(weights)
+    pixel_value = torch.sum(weights * rgb_list, 0)
+    # print(pixel_value)    
+    return pixel_value   
 
 
 def compute_transmittance(alpha):    
-    transmittance = torch.cumprod(alpha,-1) 
-    return transmittance
+    transmittance = torch.cumprod(alpha,0)
+    #print(transmittance)
+    #accu_transmittance = torch.cat((torch.ones((transmittance.shape[0]), device = alpha.device), 
+    #            transmittance[:]), dim=-1)
+    
+    accu_transmittance = torch.roll(transmittance , shifts = 1,  dims = 1)
+    #print(accu_transmittance.shape)
+    accu_transmittance[0,0] = 1
+    #print(accu_transmittance)
+    
+    return accu_transmittance
 
 
 def mse_loss(groundtruth, prediction):
@@ -202,8 +210,8 @@ def findNearFar(image, pose, camera_info):
 def train(images, poses, camera_info, args):
     # initialize tensorboard, wandb, model, optimizer, scheduler
     Writer = SummaryWriter(args.logs_path)
-    wandb.init(project="Nerf-sr_f", 
-               name="Nerf-sr_f1", # n_rays_batch, n_sample, precrop, save_ckpt_iter
+    wandb.init(project="NeRF", 
+               name="NeRF",
                config=args)
     
     model = NeRFmodel(args.n_pos_freq, args.n_dirc_freq).to(device)
@@ -227,8 +235,7 @@ def train(images, poses, camera_info, args):
     
     # start training
     for i in range(start_iter, args.max_iters):
-        mode = 'train'  
-        rays_origins, delta, rays_directions, ground_truth_rgb  = generateBatch(images, poses, camera_info,mode,i, args)
+        rays_origins, delta, rays_directions, ground_truth_rgb  = generateBatch(images, poses, camera_info, args)
         
         predicted_rgb = render(model, rays_origins, delta, rays_directions, args)
         print("predicted_rgb",predicted_rgb)  
@@ -238,15 +245,16 @@ def train(images, poses, camera_info, args):
         optimizer.step()
         # if i % decay_steps == 0:   
         #     scheduler.step()
-        if i % args.save_ckpt_iter == 0:
-            checkpoint_path = args.checkpoint_path + "model_sr_f1_" + str(i) + ".pth"
-            torch.save({
-                'iter': i,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict()
-            }, checkpoint_path)
-        if i % 1000 == 0:
-            test(images, poses, camera_info,model,i, args)
+        # if i % args.save_ckpt_iter == 0:
+        #     torch.save({
+        #         'iter': i,
+        #         'model_state_dict': model.state_dict(),
+        #         'optimizer_state_dict': optimizer.state_dict(),
+        #         'scheduler_state_dict': scheduler.state_dict()
+        #     }, args.checkpoint_path)
+        if i % 5 == 0:
+            predicted_rgb = predicted_rgb.reshape(50,50,3)
+            plt.imsave(args.images_path + str(i) + '.png', predicted_rgb.detach().cpu().numpy())
         psnr = 10 * torch.log10(1.0 / mseloss) 
         print("psnr",psnr)
         wandb.log({'PSNR': float(psnr.item()), 'iter': i})
@@ -260,16 +268,8 @@ def train(images, poses, camera_info, args):
     wandb.finish()
     
 
-def test(images, poses, camera_info,model,count, args):
-    mode = 'test'
-    print("test started")
-    rays_origins, delta, rays_directions, ground_truth_rgb  = generateBatch(images, poses, camera_info,mode,count, args)
-    print("batch generated ")
-    predicted_rgb = render(model, rays_origins, delta, rays_directions, args)
-    print("render done")
-    predicted_rgb = predicted_rgb.reshape(images[0].shape[0],images[0].shape[1],3)
-    plt.imsave(args.images_path + str(count) + '.png', predicted_rgb.detach().cpu().numpy())
-    print("test1 done")
+def test(images, poses, camera_info, args):
+    pass
 
 
 def main(args):
@@ -293,7 +293,7 @@ def configParser():
     parser.add_argument('--lrate',default=5e-4,help="training learning rate")
     parser.add_argument('--lrate_decay', type=int, default=250,help='exponential learning rate decay (in 1000s)')   # update 1
     # pre-crop options  : update 2
-    parser.add_argument("--precrop_iters", type=int, default=8000,
+    parser.add_argument("--precrop_iters", type=int, default=0,
                         help='number of steps to train on central crops')
     parser.add_argument("--precrop_frac", type=float,
                         default=.5, help='fraction of img taken for central crops') 
@@ -301,17 +301,16 @@ def configParser():
     parser.add_argument('--near', type=int, default=2)
     parser.add_argument('--far',type=int, default=6)
     
-    parser.add_argument('--n_pos_freq',default=10,help="number of positional encoding frequencies for position")  # 10
-    parser.add_argument('--n_dirc_freq',default=4,help="number of positional encoding frequencies for viewing direction") #4
+    parser.add_argument('--n_pos_freq',default=10,help="number of positional encoding frequencies for position")
+    parser.add_argument('--n_dirc_freq',default=4,help="number of positional encoding frequencies for viewing direction")
     parser.add_argument('--n_rays_batch',default=50*50,help="number of rays per batch") #32*32*4
     parser.add_argument('--n_sample',default=200,help="number of sample per ray")  #400
-    parser.add_argument('--max_iters',default=100000,help="number of max iterations for training")
+    parser.add_argument('--max_iters',default=10000,help="number of max iterations for training")
     parser.add_argument('--logs_path',default="./logs/",help="logs path")
-    parser.add_argument('--checkpoint_path',default="./checkpoints/",help="checkpoints path")
+    parser.add_argument('--checkpoint_path',default="./checkpoints",help="checkpoints path")
     parser.add_argument('--load_checkpoint',default=False,help="whether to load checkpoint or not")
     parser.add_argument('--save_ckpt_iter',default=1000,help="num of iteration to save checkpoint")
-    parser.add_argument('--images_path', default="./images_sr_f1/",help="folder to store images")
-    
+    parser.add_argument('--images_path', default="./images_m2/",help="folder to store images")
     return parser
 
 if __name__ == "__main__":

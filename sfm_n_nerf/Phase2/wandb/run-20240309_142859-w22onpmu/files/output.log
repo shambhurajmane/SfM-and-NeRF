@@ -1,0 +1,40 @@
+/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper_v1.py:58: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  ray_origin = torch.tensor(ray_origin_in_world_coordinate)
+tensor([0., 0., 0.])
+tensor([0., 0., 0.])
+Traceback (most recent call last):
+  File "/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper_v1.py", line 322, in <module>
+    main(args)
+  File "/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper_v1.py", line 286, in main
+    train(images, poses, camera_info, args)
+  File "/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper_v1.py", line 241, in train
+    rays_origins, delta, rays_directions, ground_truth_rgb  = generateBatch(images, poses, camera_info, args)
+  File "/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper_v1.py", line 120, in generateBatch
+    plt.show()
+  File "/usr/lib/python3/dist-packages/matplotlib/pyplot.py", line 368, in show
+    return _backend_mod.show(*args, **kwargs)
+  File "/usr/lib/python3/dist-packages/matplotlib/backend_bases.py", line 3544, in show
+    cls.mainloop()
+  File "/usr/lib/python3/dist-packages/matplotlib/backends/_backend_tk.py", line 958, in mainloop
+    first_manager.window.mainloop()
+  File "/usr/lib/python3.10/tkinter/__init__.py", line 1458, in mainloop
+    self.tk.mainloop(n)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper_v1.py", line 322, in <module>
+    main(args)
+  File "/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper_v1.py", line 286, in main
+    train(images, poses, camera_info, args)
+  File "/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper_v1.py", line 241, in train
+    rays_origins, delta, rays_directions, ground_truth_rgb  = generateBatch(images, poses, camera_info, args)
+  File "/home/shambhuraj/sam/github/SfM-and-NeRF/sfm_n_nerf/Phase2/Wrapper_v1.py", line 120, in generateBatch
+    plt.show()
+  File "/usr/lib/python3/dist-packages/matplotlib/pyplot.py", line 368, in show
+    return _backend_mod.show(*args, **kwargs)
+  File "/usr/lib/python3/dist-packages/matplotlib/backend_bases.py", line 3544, in show
+    cls.mainloop()
+  File "/usr/lib/python3/dist-packages/matplotlib/backends/_backend_tk.py", line 958, in mainloop
+    first_manager.window.mainloop()
+  File "/usr/lib/python3.10/tkinter/__init__.py", line 1458, in mainloop
+    self.tk.mainloop(n)
+KeyboardInterrupt

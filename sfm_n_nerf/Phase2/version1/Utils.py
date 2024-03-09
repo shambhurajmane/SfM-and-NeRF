@@ -70,11 +70,9 @@ class NeRFDataSetLoader():
             image  = cv2.imread(path)             
             #print(type(image))
             # image = cv2.resize(image, (50,50))
-            # crop_size = (500,500)
-            # image = NeRFDataSetLoader.center_crop(image, crop_size)
-            image = cv2.resize(image, (256,256))
-            # plt.imshow(image)
-            # plt.show()
+            crop_size = (500,500)
+            image = NeRFDataSetLoader.center_crop(image, crop_size)
+            image = cv2.resize(image, (50,50))
             
     
             image_list.append( torch.tensor(image))
