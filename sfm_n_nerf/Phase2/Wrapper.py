@@ -13,6 +13,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 import ipdb 
 from Utils import NeRFDataSetLoader
 np.random.seed(0)
+import torch
+import torch.nn.functional as F
+from torchvision.transforms.functional import to_tensor
 
 def loadDataset(data_path, mode):
     """
@@ -95,11 +98,11 @@ def generateBatch(images, poses, camera_info,mode,count, args):
     camera_pose = poses[image_index]
     camera_info = camera_info[image_index]
     image = images[image_index]
-    batch_rays_origin = []
-    batch_rays_direction = []
-    batch_delta = []
+    batch_rays_origin = np.empty((args.n_rays_batch, args.n_sample, 3))
+    batch_rays_direction = np.empty((args.n_rays_batch, args.n_sample, 3))
+    batch_delta = np.empty((args.n_rays_batch, args.n_sample))
      
-    batch_pixelColors = []
+    batch_pixelColors = np.empty((args.n_rays_batch, 3))
     if mode == 'train':
         for i in range(args.n_rays_batch):
             # randomly select a pixel
@@ -114,16 +117,21 @@ def generateBatch(images, poses, camera_info,mode,count, args):
             ray_origin, ray_direction = PixelToRay(camera_info, camera_pose, pixelPosition, args)
             ray_origins, delta = sampleRay(ray_origin, ray_direction, args)
             
-            ray_directions = ray_direction.expand(args.n_sample, 3)
+            ray_directions = np.tile(ray_direction, (args.n_sample, 1))
             
-            batch_rays_origin.append(ray_origins)
-            batch_rays_direction.append(ray_directions)
-            batch_delta.append(delta)
+            batch_rays_origin[i] = ray_origins
+            batch_rays_direction[i] = ray_directions
+            batch_delta[i] = delta
 
             color = image[pixelPosition[0], pixelPosition[1]]
             normalized_color = color / 255
-            batch_pixelColors.append(normalized_color)
+            batch_pixelColors[i] = normalized_color
     elif mode == 'test':
+        batch_rays_origin = np.empty((camera_info[0], camera_info[1], args.n_sample, 3))
+        batch_rays_direction = np.empty((camera_info[0], camera_info[1], args.n_sample, 3))
+        batch_delta = np.empty((camera_info[0], camera_info[1], args.n_sample))
+        batch_pixelColors = np.empty((camera_info[0], camera_info[1], 3))
+
         for i in range(camera_info[0]):
             for j in range(camera_info[1]):
                 # randomly select a pixel
@@ -131,15 +139,15 @@ def generateBatch(images, poses, camera_info,mode,count, args):
                 ray_origin, ray_direction = PixelToRay(camera_info, camera_pose, pixelPosition, args)
                 ray_origins, delta = sampleRay(ray_origin, ray_direction, args)
                 
-                ray_directions = ray_direction.expand(args.n_sample, 3)
-                
-                batch_rays_origin.append(ray_origins)
-                batch_rays_direction.append(ray_directions)
-                batch_delta.append(delta)
+                ray_directions = np.tile(ray_direction, (args.n_sample, 1))
+    
+                batch_rays_origin[i, j] = ray_origins
+                batch_rays_direction[i, j] = ray_directions
+                batch_delta[i, j] = delta
 
                 color = image[pixelPosition[0], pixelPosition[1]]
                 normalized_color = color / 255
-                batch_pixelColors.append(normalized_color)
+                batch_pixelColors[i, j] = normalized_color
         
         
     ray_origins = torch.stack(batch_rays_origin).to(device)
@@ -148,7 +156,71 @@ def generateBatch(images, poses, camera_info,mode,count, args):
     pixel_colors = torch.stack(batch_pixelColors).to(device)
     
     return ray_origins, batch_delta, ray_directions, pixel_colors
+
+def generateBatch2(images, poses, camera_info_list,mode,count, args):
+    """
+    Input:
+        images: all images in dataset
+        poses: corresponding camera pose in world frame
+        camera_info: image width, height, camera matrix
+        args: get batch size related information
+    Outputs:
+        A set of rays
+    """
     
+    # randomly select a set of rays
+    image_index = random.randint(0, images.shape[0]-1)
+    camera_pose = poses[image_index]
+    camera_info = camera_info_list[image_index]
+    image = images[image_index]
+    
+    if mode == 'train':
+        if count <args.precrop_iters:
+            height, width = image.shape[:2]
+            crop_size = (150, 150)  
+            crop_x = max(0, (width - crop_size[0]) // 2)
+            crop_y = max(0, (height - crop_size[1]) // 2)
+            pixelPosition = np.random.randint(crop_y, crop_y + crop_size[1]-1, size=(args.n_rays_batch, 2))
+        else:
+            pixelPosition = np.random.randint(0, camera_info[0] - 1, size=(args.n_rays_batch, 2))
+    else:  # mode == 'test'
+        pixelPosition = np.array(np.meshgrid(range(camera_info[0]), range(camera_info[1]))).T.reshape(-1, 2)
+
+    batch_rays_origin = np.empty((pixelPosition.shape[0], args.n_sample, 3))
+    batch_rays_direction = np.empty((pixelPosition.shape[0], args.n_sample, 3))
+    batch_delta = np.empty((pixelPosition.shape[0], args.n_sample))
+    batch_pixelColors = np.empty((pixelPosition.shape[0], 3))
+
+    for i, pixel_pos in enumerate(pixelPosition):
+        ray_origin, ray_direction = PixelToRay(camera_info, camera_pose, pixel_pos, args)
+        ray_origins, delta = sampleRay(ray_origin, ray_direction, args)
+
+        ray_directions = np.tile(ray_direction, (args.n_sample, 1))
+
+        batch_rays_origin[i] = ray_origins
+        batch_rays_direction[i] = ray_directions
+        batch_delta[i] = delta
+
+        color = image[pixel_pos[0], pixel_pos[1]]
+        normalized_color = color / 255
+        batch_pixelColors[i] = normalized_color
+
+    # Convert NumPy arrays to PyTorch tensors
+    batch_rays_origin = torch.tensor(batch_rays_origin, dtype=torch.float32, device=device)
+    batch_rays_direction = torch.tensor(batch_rays_direction, dtype=torch.float32, device=device)
+    batch_delta = torch.tensor(batch_delta, dtype=torch.float32, device=device)
+    batch_pixelColors = torch.tensor(batch_pixelColors, dtype=torch.float32, device=device)
+    # Stack tensors
+    ray_origins = torch.cat([batch_rays_origin], dim=1).to(device)
+    ray_directions = torch.cat([batch_rays_direction], dim=1).to(device)
+    pixel_colors = torch.cat([batch_pixelColors], dim=0).to(device)
+    batch_delta = torch.cat([batch_delta], dim=0).to(device)
+    
+    
+    return ray_origins, batch_delta, ray_directions, pixel_colors
+
+
+
 def render(model, rays_origin, delta, rays_direction, args):
     """
     Input:
@@ -161,26 +233,45 @@ def render(model, rays_origin, delta, rays_direction, args):
     rgb_data = []
     for i in range(rays_origin.shape[0]):
         rgb, sigma = model(rays_origin[i], rays_direction[i])
-        rgb_map = render_rays2(rgb, sigma, delta[i])
+        
+        alpha = 1 - torch.exp( -1 * sigma * delta[i])
+        weights = torch.cumprod((1 - alpha  +  1e-10),-1) * alpha
+        weights = weights.to(device)
+        rgb_map = torch.sum(weights[...,None] * rgb, -2)
+    
         rgb_data.append(rgb_map)
 
     rgb_data = torch.stack(rgb_data)  
         
     return rgb_data
 
-def render_rays2(rgb_list, depth_list, delta_list):
-    """ As per the paper"""  
+def render2(model, rays_origin, delta, rays_direction, args):
+    """
+    Input:
+        model: NeRF model
+        rays_origin: origins of input rays
+        rays_direction: direction of input rays
+    Outputs:
+        rgb values of input rays
+    """
+    num_rays = rays_origin.shape[0]
 
-    alpha = 1 - torch.exp( -1 * depth_list * delta_list)
-    weights = compute_transmittance(1 - alpha  +  1e-10)  * alpha
+    # Evaluate model for all rays in a single call
+    rgb, sigma = model(rays_origin, rays_direction)
+
+    # Calculate alpha values and weights
+    alpha = 1 - torch.exp(-sigma * delta)
+    weights = torch.cumprod((1 - alpha + 1e-10), dim=-1) * alpha
     weights = weights.to(device)
-    pixel_value = torch.sum(weights[...,None] * rgb_list, -2)
-    return pixel_value 
 
+    # Calculate weighted sum of RGB values
+    rgb_map = torch.sum(weights[..., None] * rgb, dim=-2)
+    # ipdb.set_trace()    
 
-def compute_transmittance(alpha):    
-    transmittance = torch.cumprod(alpha,-1) 
-    return transmittance
+    # Stack the results along the first dimension
+    # rgb_data = rgb_map.unsqueeze(0).expand(num_rays, -1, -1) 
+        
+    return rgb_map
 
 
 def mse_loss(groundtruth, prediction):
@@ -189,8 +280,46 @@ def mse_loss(groundtruth, prediction):
     loss = torch.mean((groundtruth - prediction) ** 2)
     return loss
 
+
 def ssim_map(groundtruth, prediction):
-    pass
+    """
+    Compute SSIM map between groundtruth and prediction using PyTorch.
+
+    Parameters:
+        groundtruth (torch.Tensor): Groundtruth image tensor.
+        prediction (torch.Tensor): Predicted image tensor.
+        window_size (int): Size of the SSIM window (default: 11).
+        size_average (bool): If True, compute the average SSIM across all pixels (default: True).
+        full (bool): If True, return SSIM map (default: False).
+
+    Returns:
+        float or torch.Tensor: SSIM value or SSIM map.
+    """
+    K1 = 0.01
+    K2 = 0.03
+    C1 = (K1 * 2) ** 2
+    C2 = (K2 * 2) ** 2
+    groundtruth = groundtruth.unsqueeze(0)
+    prediction = prediction.unsqueeze(0)
+
+
+    mu1 = torch.mean(groundtruth)
+    mu2 = torch.mean(prediction)
+
+    mu1_sq = mu1.pow(2)
+    mu2_sq = mu2.pow(2)
+    mu1_mu2 = mu1 * mu2
+
+    sigma1_sq = torch.std(groundtruth)
+    sigma2_sq = torch.std(prediction)
+    sigma12 = torch.mean((groundtruth - mu1) * (prediction - mu2))
+
+
+    ssim_map = ((2 * mu1_mu2 + C1) * (2 * sigma12 + C2)) / ((mu1_sq + mu2_sq + C1) * (sigma1_sq + sigma2_sq + C2))
+
+    return ssim_map
+
+
 
 def findNearFar(image, pose, camera_info):
     for i in range(image.shape[0]):
@@ -202,9 +331,9 @@ def findNearFar(image, pose, camera_info):
 def train(images, poses, camera_info, args):
     # initialize tensorboard, wandb, model, optimizer, scheduler
     Writer = SummaryWriter(args.logs_path)
-    wandb.init(project="Nerf-sr_f", 
-               name="Nerf-sr_f1", # n_rays_batch, n_sample, precrop, save_ckpt_iter
-               config=args)
+    # wandb.init(project="Nerf-sr_f", 
+    #            name="Nerf-sr_f1", # n_rays_batch, n_sample, precrop, save_ckpt_iter
+    #            config=args)
     
     model = NeRFmodel(args.n_pos_freq, args.n_dirc_freq).to(device)
 
@@ -228,9 +357,8 @@ def train(images, poses, camera_info, args):
     # start training
     for i in range(start_iter, args.max_iters):
         mode = 'train'  
-        rays_origins, delta, rays_directions, ground_truth_rgb  = generateBatch(images, poses, camera_info,mode,i, args)
-        
-        predicted_rgb = render(model, rays_origins, delta, rays_directions, args)
+        rays_origins, delta, rays_directions, ground_truth_rgb  = generateBatch2(images, poses, camera_info,mode,i, args)
+        predicted_rgb = render2(model, rays_origins, delta, rays_directions, args)
         print("predicted_rgb",predicted_rgb)  
         mseloss = mse_loss(ground_truth_rgb, predicted_rgb)
         optimizer.zero_grad()
@@ -245,27 +373,27 @@ def train(images, poses, camera_info, args):
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict()
             }, checkpoint_path)
-        if i % 1000 == 0:
+        if i > 500 and i % 1000 == 0:
             test(images, poses, camera_info,model,i, args)
         psnr = 10 * torch.log10(1.0 / mseloss) 
-        print("psnr",psnr)
-        wandb.log({'PSNR': float(psnr.item()), 'iter': i})
+        # wandb.log({'PSNR': float(psnr.item()), 'iter': i})
         Writer.add_scalar('PSNR', float(psnr.item()), i)   
-        # ssim_val = ssim_map(images, predicted_rgb)
-        # Writer.add_scalar('SSIM', float(ssim_val.item()), i)
+        ssim_val = ssim_map(ground_truth_rgb, predicted_rgb)
+        print("ssim_val",ssim_val)  
+        Writer.add_scalar('SSIM', float(ssim_val.item()), i)
         # wandb.log({'SSIM': float(ssim_val.item()), 'iter': i})
         Writer.add_scalar('Loss', float(mseloss.item()), i)
-        wandb.log({'Loss': float(mseloss.item()), 'iter': i})
+        # wandb.log({'Loss': float(mseloss.item()), 'iter': i})
     Writer.close()  
-    wandb.finish()
+    # wandb.finish()
     
 
 def test(images, poses, camera_info,model,count, args):
     mode = 'test'
     print("test started")
-    rays_origins, delta, rays_directions, ground_truth_rgb  = generateBatch(images, poses, camera_info,mode,count, args)
+    rays_origins, delta, rays_directions, ground_truth_rgb  = generateBatch2(images, poses, camera_info,mode,count, args)
     print("batch generated ")
-    predicted_rgb = render(model, rays_origins, delta, rays_directions, args)
+    predicted_rgb = render2(model, rays_origins, delta, rays_directions, args)
     print("render done")
     predicted_rgb = predicted_rgb.reshape(images[0].shape[0],images[0].shape[1],3)
     plt.imsave(args.images_path + str(count) + '.png', predicted_rgb.detach().cpu().numpy())
@@ -303,7 +431,7 @@ def configParser():
     
     parser.add_argument('--n_pos_freq',default=10,help="number of positional encoding frequencies for position")  # 10
     parser.add_argument('--n_dirc_freq',default=4,help="number of positional encoding frequencies for viewing direction") #4
-    parser.add_argument('--n_rays_batch',default=50*50,help="number of rays per batch") #32*32*4
+    parser.add_argument('--n_rays_batch',default=20*20,help="number of rays per batch") #32*32*4
     parser.add_argument('--n_sample',default=200,help="number of sample per ray")  #400
     parser.add_argument('--max_iters',default=100000,help="number of max iterations for training")
     parser.add_argument('--logs_path',default="./logs/",help="logs path")

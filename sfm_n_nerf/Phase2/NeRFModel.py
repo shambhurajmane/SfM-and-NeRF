@@ -4,7 +4,7 @@ import numpy as np
 import ipdb
 
 class NeRFmodel(nn.Module):
-    def __init__(self, embed_pos_L=10, embed_direction_L=4, hidden_layers=128):
+    def __init__(self, embed_pos_L=10, embed_direction_L=4, hidden_layers=256):
         super(NeRFmodel, self).__init__()
         #############################
         # network initialization
@@ -29,7 +29,7 @@ class NeRFmodel(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_layers, hidden_layers),
             nn.ReLU(),
-            nn.Linear(hidden_layers,  hidden_layers + 1),
+            nn.Linear(hidden_layers,  hidden_layers),
         )
         self.block3 = nn.Sequential(
             nn.Linear(embed_direction_L * 6 + 3 + hidden_layers, hidden_layers//2),
@@ -59,13 +59,24 @@ class NeRFmodel(nn.Module):
         # network structure
         #############################
         
-        emb_x= self.position_encoding(pos, self.embed_pos_L)
-        emb_dir = self.position_encoding(direction, self.embed_direction_L)
-        x = self.block1(emb_x)
-        x = self.block2(torch.cat([x, emb_x], dim=1))
+        # Repeat the input for batch processing
+        batch_size = pos.shape[0]
+        emb_x = torch.zeros((batch_size, pos.shape[1], self.embed_pos_L * 6 + 3))  
+        emb_dir = torch.zeros((batch_size, direction.shape[1], self.embed_direction_L * 6 + 3)) 
+        for i in range(pos.shape[0]):
+            emb_x[i] = self.position_encoding(pos[i], self.embed_pos_L)
+            emb_dir[i] = self.position_encoding(direction[i], self.embed_direction_L)
+        emb_x = emb_x.to(pos.device)
+        emb_dir = emb_dir.to(pos.device)    
         
-        x, sigma = x[:,:-1], self.relu(x[:,-1])
-        x = self.block3(torch.cat([x, emb_dir], dim=1))
+        x = self.block1(emb_x)
+        x = self.block2(torch.cat([x, emb_x], dim=-1))
+
+        # Reshape x back to the original shape
+
+
+        _, sigma = x[:, :,:-1], self.relu(x[:,:, -1])
+        x = self.block3(torch.cat([x, emb_dir], dim=-1))
         output = self.block4(x)
 
         return output, sigma
