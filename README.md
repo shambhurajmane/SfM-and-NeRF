@@ -43,7 +43,7 @@ The repository is structured as follows:
 - `/Phase1`: This folder contains all the source code for the Structure from Motion, including implementations of SFM algorithm.
 - `/Nerf.pdf`: This folder contains the academic report documenting the project, including the methodology, experimental results, and conclusions.
 - `/P3Data`: This folder contains the data provided on the course project page [here](https://drive.google.com/file/d/1DLdCpX5ojtSN4RjYZ2UwpV2fAJn3sX_k/view)
-- For NeRF Please download dataset from [here]([https://people.eecs.berkeley.edu/~bmild/nerf/tiny_nerf_data.npz](https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1))
+- For NeRF Please download dataset from [here]([https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1])
 
 ## Technologies
 The project utilizes the following technologies:
@@ -60,7 +60,7 @@ To run the project locally, follow these steps:
 1. Clone the repository:
 
 ```shell
-git clone https://github.com/Prasannanatu/sfm_and_nerf.git
+git clone https://github.com/shambhurajmane/SfM-and-NeRF.git
  ```
  
 Install the required dependencies. You can use the provided requirements.txt file to install the necessary packages. Run the following command:
